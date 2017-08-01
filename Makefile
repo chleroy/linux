@@ -1,3 +1,6 @@
+ARCH = powerpc
+CROSS_COMPILE = ppc-linux-
+
 # SPDX-License-Identifier: GPL-2.0
 VERSION = 5
 PATCHLEVEL = 11

@@ -186,6 +186,7 @@ struct spi_device {
 #define	SPI_TX_OCTAL	0x2000			/* transmit with 8 wires */
 #define	SPI_RX_OCTAL	0x4000			/* receive with 8 wires */
 #define	SPI_3WIRE_HIZ	0x8000			/* high impedance turnaround */
+#define	SPI_TROLL	0x10000			/* a few clock ticks needed after CS goes inactive */
 	int			irq;
 	void			*controller_state;
 	void			*controller_data;

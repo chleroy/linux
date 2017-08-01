@@ -194,6 +194,10 @@ end:
 void __init cpm_reset(void)
 {
 	sysconf8xx_t __iomem *siu_conf;
+#ifdef CONFIG_UCODE_PATCH
+	struct device_node *np;
+	int len;
+#endif
 
 	cpmp = &mpc8xx_immr->im_cpm;
 
@@ -206,7 +210,9 @@ void __init cpm_reset(void)
 #endif
 
 #ifdef CONFIG_UCODE_PATCH
-	cpm_load_patch(cpmp);
+	np = of_find_compatible_node(NULL, NULL, "fsl,cpm1");
+	if (of_find_property(np, "micropatch", &len))
+		cpm_load_patch(cpmp);
 #endif
 
 	/*

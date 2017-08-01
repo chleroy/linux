@@ -386,6 +386,8 @@ static int cpm_uart_startup(struct uart_port *port)
 	int retval;
 	struct uart_cpm_port *pinfo =
 		container_of(port, struct uart_cpm_port, port);
+	struct device *dev = pinfo->port.dev;
+	int i;
 
 	pr_debug("CPM uart[%d]:startup\n", port->line);
 
@@ -416,6 +418,32 @@ static int cpm_uart_startup(struct uart_port *port)
 	if (retval)
 		return retval;
 
+	for (i = 0; i < NUM_GPIOS; i++) {
+		struct gpio_desc *gpiod;
+
+		gpiod = devm_gpiod_get_index_optional(dev, NULL, i, GPIOD_ASIS);
+
+		if (IS_ERR(gpiod)) {
+			retval = PTR_ERR(gpiod);
+			goto out_irq;
+		}
+
+		if (gpiod) {
+			int ret;
+
+			if (i == GPIO_RTS || i == GPIO_DTR)
+				ret = gpiod_direction_output(gpiod, 0);
+			else
+				ret = gpiod_direction_input(gpiod);
+			if (ret) {
+				pr_err("can't set direction for gpio #%d: %d\n",
+					i, ret);
+				continue;
+			}
+			pinfo->gpios[i] = gpiod;
+		}
+	}
+
 	/* Startup rx-int */
 	if (IS_SMC(pinfo)) {
 		setbits8(&pinfo->smcp->smc_smcm, SMCM_RX);
@@ -426,6 +454,11 @@ static int cpm_uart_startup(struct uart_port *port)
 	}
 
 	return 0;
+
+out_irq:
+	irq_dispose_mapping(pinfo->port.irq);
+
+	return retval;
 }
 
 inline void cpm_uart_wait_until_send(struct uart_cpm_port *pinfo)
@@ -441,11 +474,16 @@ static void cpm_uart_shutdown(struct uart_port *port)
 {
 	struct uart_cpm_port *pinfo =
 		container_of(port, struct uart_cpm_port, port);
+	int i;
 
 	pr_debug("CPM uart[%d]:shutdown\n", port->line);
 
 	/* free interrupt handler */
 	free_irq(port->irq, port);
+
+	/* free gpios */
+	for (i = 0; i < NUM_GPIOS; i++)
+		pinfo->gpios[i] = NULL;
 
 	/* If the port is not the console, disable Rx and Tx. */
 	if (!(pinfo->flags & FLAG_CONSOLE)) {
@@ -1138,7 +1176,6 @@ static int cpm_uart_init_port(struct device_node *np,
 {
 	const u32 *data;
 	void __iomem *mem, *pram;
-	struct device *dev = pinfo->port.dev;
 	int len;
 	int ret;
 	int i;
@@ -1210,31 +1247,8 @@ static int cpm_uart_init_port(struct device_node *np,
 		goto out_pram;
 	}
 
-	for (i = 0; i < NUM_GPIOS; i++) {
-		struct gpio_desc *gpiod;
-
+	for (i = 0; i < NUM_GPIOS; i++)
 		pinfo->gpios[i] = NULL;
-
-		gpiod = devm_gpiod_get_index_optional(dev, NULL, i, GPIOD_ASIS);
-
-		if (IS_ERR(gpiod)) {
-			ret = PTR_ERR(gpiod);
-			goto out_irq;
-		}
-
-		if (gpiod) {
-			if (i == GPIO_RTS || i == GPIO_DTR)
-				ret = gpiod_direction_output(gpiod, 0);
-			else
-				ret = gpiod_direction_input(gpiod);
-			if (ret) {
-				pr_err("can't set direction for gpio #%d: %d\n",
-					i, ret);
-				continue;
-			}
-			pinfo->gpios[i] = gpiod;
-		}
-	}
 
 #ifdef CONFIG_PPC_EARLY_DEBUG_CPM
 	udbg_putc = NULL;
@@ -1242,8 +1256,6 @@ static int cpm_uart_init_port(struct device_node *np,
 
 	return cpm_uart_request_port(&pinfo->port);
 
-out_irq:
-	irq_dispose_mapping(pinfo->port.irq);
 out_pram:
 	cpm_uart_unmap_pram(pinfo, pram);
 out_mem:

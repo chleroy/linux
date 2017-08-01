@@ -19,6 +19,14 @@ config MPC86XADS
 	  The MPC86xADS is meant to serve as a platform for s/w and h/w
 	  development around the MPC86X processor families.
 
+config SAF3000_8XX
+	bool "SAF3000"
+	select SAF3000
+	select DEFAULT_UIMAGE
+	select CPM1
+	help
+	  SAF3000 platform based on MPC8xx CPU (MCR3000, CMPC885)
+
 config MPC885ADS
 	bool "MPC885ADS"
 	select CPM1
