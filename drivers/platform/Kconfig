@@ -1,4 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
+
+source "drivers/platform/saf3000/Kconfig"
+
 if X86
 source "drivers/platform/x86/Kconfig"
 endif
