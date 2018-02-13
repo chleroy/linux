@@ -926,9 +926,9 @@ static void __meminit remove_pagetable(unsigned long start, unsigned long end)
 	radix__flush_tlb_kernel_range(start, end);
 }
 
-int __meminit radix__create_section_mapping(unsigned long start, unsigned long end)
+int __meminit radix__create_section_mapping(unsigned long start, unsigned long end, int nid)
 {
-	return create_physical_mapping(start, end, -1);
+	return create_physical_mapping(start, end, nid);
 }
 
 int __meminit radix__remove_section_mapping(unsigned long start, unsigned long end)
