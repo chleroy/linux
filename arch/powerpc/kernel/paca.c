@@ -20,6 +20,10 @@
 
 #include "setup.h"
 
+#ifndef CONFIG_SMP
+#define boot_cpuid 0
+#endif
+
 static void *__init alloc_paca_data(unsigned long size, unsigned long align,
 				unsigned long limit, int cpu)
 {

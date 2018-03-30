@@ -366,6 +366,8 @@ static int __init parse_disable_radix(char *p)
 {
 	bool val;
 
+	printk("%s: strlen(p) %lu '%s'\n", __func__, strlen(p), p);
+
 	if (strlen(p) == 0)
 		val = true;
 	else if (kstrtobool(p, &val))

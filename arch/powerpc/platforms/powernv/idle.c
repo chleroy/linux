@@ -405,22 +405,20 @@ void power9_idle(void)
 void pnv_power9_force_smt4_catch(void)
 {
 	int cpu, cpu0, thr;
-	struct paca_struct *tpaca;
 	int awake_threads = 1;		/* this thread is awake */
 	int poke_threads = 0;
 	int need_awake = threads_per_core;
 
 	cpu = smp_processor_id();
 	cpu0 = cpu & ~(threads_per_core - 1);
-	tpaca = &paca[cpu0];
 	for (thr = 0; thr < threads_per_core; ++thr) {
 		if (cpu != cpu0 + thr)
-			atomic_inc(&tpaca[thr].dont_stop);
+			atomic_inc(&paca_ptrs[cpu0+thr]->dont_stop);
 	}
 	/* order setting dont_stop vs testing requested_psscr */
 	mb();
 	for (thr = 0; thr < threads_per_core; ++thr) {
-		if (!tpaca[thr].requested_psscr)
+		if (!paca_ptrs[cpu0+thr]->requested_psscr)
 			++awake_threads;
 		else
 			poke_threads |= (1 << thr);
@@ -433,14 +431,14 @@ void pnv_power9_force_smt4_catch(void)
 			if (poke_threads & (1 << thr)) {
 				ppc_msgsnd_sync();
 				ppc_msgsnd(PPC_DBELL_MSGTYPE, 0,
-					   tpaca[thr].hw_cpu_id);
+					   paca_ptrs[cpu0+thr]->hw_cpu_id);
 			}
 		}
 		/* now spin until at least 3 threads are awake */
 		do {
 			for (thr = 0; thr < threads_per_core; ++thr) {
 				if ((poke_threads & (1 << thr)) &&
-				    !tpaca[thr].requested_psscr) {
+				    !paca_ptrs[cpu0+thr]->requested_psscr) {
 					++awake_threads;
 					poke_threads &= ~(1 << thr);
 				}
@@ -453,16 +451,14 @@ EXPORT_SYMBOL_GPL(pnv_power9_force_smt4_catch);
 void pnv_power9_force_smt4_release(void)
 {
 	int cpu, cpu0, thr;
-	struct paca_struct *tpaca;
 
 	cpu = smp_processor_id();
 	cpu0 = cpu & ~(threads_per_core - 1);
-	tpaca = &paca[cpu0];
 
 	/* clear all the dont_stop flags */
 	for (thr = 0; thr < threads_per_core; ++thr) {
 		if (cpu != cpu0 + thr)
-			atomic_dec(&tpaca[thr].dont_stop);
+			atomic_dec(&paca_ptrs[cpu+thr]->dont_stop);
 	}
 }
 EXPORT_SYMBOL_GPL(pnv_power9_force_smt4_release);
