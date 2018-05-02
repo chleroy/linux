@@ -1,0 +1,32 @@
+dist: trusty
+sudo: false
+language: c
+compiler: gcc
+
+# We'd rather use addons, but they're not working yet.
+# addons:
+#   apt:
+#     packages:
+#     - flex
+#     - bison
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y flex bison sparse
+
+os:
+  - linux-ppc64le
+
+branches:
+  only:
+    - ci-test
+
+script:
+  - export CROSS_COMPILE=
+  - export ARCH=powerpc
+  - export DEFCONFIG=ppc64le_defconfig
+  - export KBUILD_OUTPUT=build
+  - export JFACTOR=$(nproc)
+  - export SILENT=0
+  - export KBUILD_CHECKSRC=2
+  - arch/powerpc/tools/ci/build.sh
