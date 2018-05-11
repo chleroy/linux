@@ -3,16 +3,11 @@ sudo: false
 language: c
 compiler: gcc
 
-# We'd rather use addons, but they're not working yet.
-# addons:
-#   apt:
-#     packages:
-#     - flex
-#     - bison
-
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y flex bison sparse
+addons:
+  apt:
+    packages:
+    - flex
+    - bison
 
 os:
   - linux-ppc64le
