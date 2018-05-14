@@ -8,6 +8,7 @@ addons:
     packages:
     - flex
     - bison
+    - sparse
 
 os:
   - linux-ppc64le
