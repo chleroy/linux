@@ -7,11 +7,11 @@
 	images {
 		kernel@1 {
 			description = "CMPCPRO kernel";
-			data = /incbin/("vmlinux.bin.gz");
+			data = /incbin/("vmlinux.bin.lzma");
 			type = "kernel";
 			arch = "ppc";
 			os = "linux";
-			compression = "gzip";
+			compression = "lzma";
 			load = <00000000>;
 			entry = <00000000>;
 			hash@1 {
