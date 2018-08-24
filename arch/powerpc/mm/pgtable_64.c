@@ -117,10 +117,11 @@ void __iomem * __ioremap_at(phys_addr_t pa, void *ea, unsigned long size,
 			    unsigned long flags)
 {
 	unsigned long i;
+	pte_t pte = __pte(flags);
 
 	/* Make sure we have the base flags */
-	if ((flags & _PAGE_PRESENT) == 0)
-		flags |= pgprot_val(PAGE_KERNEL);
+	if (!pte_present(pte))
+		pte = __pte(pte_val(pte) | pgprot_val(PAGE_KERNEL));
 
 	/* We don't support the 4K PFN hack with ioremap */
 	if (flags & H_PAGE_4K_PFN)
@@ -131,7 +132,7 @@ void __iomem * __ioremap_at(phys_addr_t pa, void *ea, unsigned long size,
 	WARN_ON(size & ~PAGE_MASK);
 
 	for (i = 0; i < size; i += PAGE_SIZE)
-		if (map_kernel_page((unsigned long)ea+i, pa+i, flags))
+		if (map_kernel_page((unsigned long)ea + i, pa + i, pte_val(pte)))
 			return NULL;
 
 	return (void __iomem *)ea;
@@ -225,23 +226,23 @@ void __iomem * ioremap_wc(phys_addr_t addr, unsigned long size)
 void __iomem * ioremap_prot(phys_addr_t addr, unsigned long size,
 			     unsigned long flags)
 {
+	pte_t pte = __pte(flags);
 	void *caller = __builtin_return_address(0);
 
 	/* writeable implies dirty for kernel addresses */
-	if (flags & _PAGE_WRITE)
-		flags |= _PAGE_DIRTY;
+	if (pte_write(pte))
+		pte = pte_mkdirty(pte);
 
 	/* we don't want to let _PAGE_EXEC leak out */
-	flags &= ~_PAGE_EXEC;
+	pte = pte_exprotect(pte);
 	/*
 	 * Force kernel mapping.
 	 */
-	flags &= ~_PAGE_USER;
-	flags |= _PAGE_PRIVILEGED;
+	pte = pte_mkprivileged(pte);
 
 	if (ppc_md.ioremap)
-		return ppc_md.ioremap(addr, size, flags, caller);
-	return __ioremap_caller(addr, size, flags, caller);
+		return ppc_md.ioremap(addr, size, pte_val(pte), caller);
+	return __ioremap_caller(addr, size, pte_val(pte), caller);
 }
 
 

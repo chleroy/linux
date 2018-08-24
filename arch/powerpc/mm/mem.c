@@ -532,7 +532,7 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address,
 		access = 0UL;
 		break;
 	case 0x400:
-		access = _PAGE_EXEC;
+		access = pte_val(pte_mkexec(__pte(0)));
 		break;
 	default:
 		return;

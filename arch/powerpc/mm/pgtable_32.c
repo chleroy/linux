@@ -103,15 +103,17 @@ EXPORT_SYMBOL(ioremap_wt);
 void __iomem *
 ioremap_prot(phys_addr_t addr, unsigned long size, unsigned long flags)
 {
+	pte_t pte = __pte(flags);
+
 	/* writeable implies dirty for kernel addresses */
-	if ((flags & (_PAGE_RW | _PAGE_RO)) != _PAGE_RO)
-		flags |= _PAGE_DIRTY | _PAGE_HWWRITE;
+	if (pte_write(pte))
+		pte = pte_mkdirty(pte);
 
 	/* we don't want to let _PAGE_USER and _PAGE_EXEC leak out */
-	flags &= ~(_PAGE_USER | _PAGE_EXEC);
-	flags |= _PAGE_PRIVILEGED;
+	pte = pte_exprotect(pte);
+	pte = pte_mkprivileged(pte);
 
-	return __ioremap_caller(addr, size, flags, __builtin_return_address(0));
+	return __ioremap_caller(addr, size, pte_val(pte), __builtin_return_address(0));
 }
 EXPORT_SYMBOL(ioremap_prot);
 
@@ -128,14 +130,15 @@ __ioremap_caller(phys_addr_t addr, unsigned long size, unsigned long flags,
 	unsigned long v, i;
 	phys_addr_t p;
 	int err;
+	pte_t pte = __pte(flags);
 
 	/* Make sure we have the base flags */
-	if ((flags & _PAGE_PRESENT) == 0)
-		flags |= pgprot_val(PAGE_KERNEL);
+	if (!pte_present(pte))
+		pte = __pte(pte_val(pte) | pgprot_val(PAGE_KERNEL));
 
 	/* Non-cacheable page cannot be coherent */
-	if (flags & _PAGE_NO_CACHE)
-		flags &= ~_PAGE_COHERENT;
+	if (pte_ci(pte))
+		pte = pte_mknoncoherent(pte);
 
 	/*
 	 * Choose an address to map it to.
@@ -194,7 +197,7 @@ __ioremap_caller(phys_addr_t addr, unsigned long size, unsigned long flags,
 
 	err = 0;
 	for (i = 0; i < size && err == 0; i += PAGE_SIZE)
-		err = map_kernel_page(v+i, p+i, flags);
+		err = map_kernel_page(v + i, p + i, pte_val(pte));
 	if (err) {
 		if (slab_is_available())
 			vunmap((void *)v);
@@ -235,8 +238,7 @@ int map_kernel_page(unsigned long va, phys_addr_t pa, int flags)
 		/* The PTE should never be already set nor present in the
 		 * hash table
 		 */
-		BUG_ON((pte_val(*pg) & (_PAGE_PRESENT | _PAGE_HASHPTE)) &&
-		       flags);
+		BUG_ON((pte_present(*pg) | pte_hashpte(*pg)) && flags);
 		set_pte_at(&init_mm, va, pg, pfn_pte(pa >> PAGE_SHIFT,
 						     __pgprot(flags)));
 	}
