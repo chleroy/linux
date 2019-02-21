@@ -8,6 +8,7 @@ ccflags-$(CONFIG_PPC64)	:= $(NO_MINIMAL_TOC)
 CFLAGS_REMOVE_slb.o = $(CC_FLAGS_FTRACE)
 
 KASAN_SANITIZE_ppc_mmu_32.o := n
+KASAN_SANITIZE_fsl_booke_mmu.o := n
 
 ifdef CONFIG_KASAN
 CFLAGS_ppc_mmu_32.o  		+= -DDISABLE_BRANCH_PROFILING
