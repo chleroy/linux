@@ -155,3 +155,25 @@ x509.genkey
 
 # Documentation toolchain
 sphinx_*/
+
+# CS home made
+toto*
+/arch/ppc
+/drivers/platform/saf3000
+/include/ldb
+/include/saf3000
+/arch/powerpc/configs/saf3000
+/arch/powerpc/boot/dts/saf3000
+/arch/powerpc/boot/uImage.pro
+/initramfs
+/initramfs.txt
+/tr*.sh
+/working/
+*.rej
+/tmp/
+/tools/perf/PERF-FEATURES
+/patch_knl
+/vmlinux.*
+/*.its
+/*.itb
+/build64.sh
