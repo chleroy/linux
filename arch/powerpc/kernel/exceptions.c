@@ -28,6 +28,7 @@ notrace long system_call_exception(long r3, long r4, long r5,
 				   unsigned long r0, struct pt_regs *regs)
 {
 	syscall_fn f;
+	unsigned long expected_msr;
 
 	regs->orig_gpr3 = r3;
 
@@ -39,10 +40,13 @@ notrace long system_call_exception(long r3, long r4, long r5,
 
 	trace_hardirqs_off(); /* finish reconciling */
 
+	expected_msr = MSR_PR;
 	if (!IS_ENABLED(CONFIG_BOOKE) && !IS_ENABLED(CONFIG_40x))
-		BUG_ON(!(regs->msr & MSR_RI));
-	BUG_ON(!(regs->msr & MSR_PR));
-	BUG_ON(arch_irq_disabled_regs(regs));
+		expected_msr |= MSR_RI;
+	if (IS_ENABLED(CONFIG_PPC32))
+		expected_msr |= MSR_EE;
+	BUG_ON((regs->msr & expected_msr) ^ expected_msr);
+	BUG_ON(IS_ENABLED(CONFIG_PPC64) && arch_irq_disabled_regs(regs));
 
 #ifdef CONFIG_PPC_PKEY
 	if (mmu_has_feature(MMU_FTR_PKEY)) {
