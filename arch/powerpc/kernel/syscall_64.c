@@ -65,7 +65,7 @@ notrace long system_call_exception(long r3, long r4, long r5,
 			isync();
 	} else
 #endif
-		kuap_check_amr();
+		kuap_check();
 
 	account_cpu_user_entry();
 
@@ -216,7 +216,7 @@ notrace unsigned long syscall_exit_prepare(unsigned long r3,
 
 	CT_WARN_ON(ct_state() == CONTEXT_USER);
 
-	kuap_check_amr();
+	kuap_check();
 
 	regs->result = r3;
 
@@ -340,7 +340,7 @@ notrace unsigned long interrupt_exit_user_prepare(struct pt_regs *regs, unsigned
 	 * We don't need to restore AMR on the way back to userspace for KUAP.
 	 * AMR can only have been unlocked if we interrupted the kernel.
 	 */
-	kuap_check_amr();
+	kuap_check();
 
 	local_irq_save(flags);
 
@@ -419,7 +419,7 @@ notrace unsigned long interrupt_exit_kernel_prepare(struct pt_regs *regs, unsign
 	unsigned long *ti_flagsp = &current_thread_info()->flags;
 	unsigned long flags;
 	unsigned long ret = 0;
-	unsigned long amr;
+	unsigned long kuap;
 
 	if (IS_ENABLED(CONFIG_PPC_BOOK3S) && unlikely(!(regs->msr & MSR_RI)))
 		unrecoverable_exception(regs);
@@ -432,7 +432,7 @@ notrace unsigned long interrupt_exit_kernel_prepare(struct pt_regs *regs, unsign
 	if (TRAP(regs) != 0x700)
 		CT_WARN_ON(ct_state() == CONTEXT_USER);
 
-	amr = kuap_get_and_check_amr();
+	kuap = kuap_get_and_check();
 
 	if (unlikely(*ti_flagsp & _TIF_EMULATE_STACK_STORE)) {
 		clear_bits(_TIF_EMULATE_STACK_STORE, ti_flagsp);
@@ -472,7 +472,7 @@ again:
 	 * which would cause Read-After-Write stalls. Hence, we take the AMR
 	 * value from the check above.
 	 */
-	kuap_kernel_restore(regs, amr);
+	kuap_kernel_restore(regs, kuap);
 
 	return ret;
 }
