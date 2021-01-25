@@ -115,6 +115,9 @@ notrace long system_call_exception(long r3, long r4, long r5,
 			return regs->gpr[3];
 		}
 		return -ENOSYS;
+	} else {
+		/* Restore r3 from orig_gpr3 to free up a volatile reg */
+		r3 = regs->orig_gpr3;
 	}
 
 	/* May be faster to do array_index_nospec? */
