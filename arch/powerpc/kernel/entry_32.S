@@ -344,7 +344,6 @@ transfer_to_syscall:
 
 ret_from_syscall:
 	addi    r4,r1,STACK_FRAME_OVERHEAD
-	li	r5,0
 	bl	syscall_exit_prepare
 #if defined(CONFIG_4xx) || defined(CONFIG_BOOKE)
 	/* If the process has its own DBCR0 value, load it up.  The internal
