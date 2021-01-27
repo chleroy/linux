@@ -194,7 +194,6 @@ static inline void regs_set_return_value(struct pt_regs *regs, unsigned long rc)
 #define FULL_REGS(regs)		(((regs)->trap & 1) == 0)
 #define SET_FULL_REGS(regs)	((regs)->trap |= 1)
 #endif
-#define CHECK_FULL_REGS(regs)	BUG_ON(!FULL_REGS(regs))
 #define NV_REG_POISON		0xdeadbeefdeadbeefUL
 #else
 /*
@@ -204,20 +203,16 @@ static inline void regs_set_return_value(struct pt_regs *regs, unsigned long rc)
  * On 4xx we use the next bit to indicate whether the exception
  * is a critical exception (1 means it is).
  */
-#define TRAP_FLAGS_MASK		0x1F
+#define TRAP_FLAGS_MASK		0x1e
 #define TRAP(regs)		((regs)->trap & ~TRAP_FLAGS_MASK)
-#define FULL_REGS(regs)		(((regs)->trap & 1) == 0)
-#define SET_FULL_REGS(regs)	((regs)->trap |= 1)
+#define FULL_REGS(regs)		true
+#define SET_FULL_REGS(regs)	do { } while (0)
 #define IS_CRITICAL_EXC(regs)	(((regs)->trap & 2) != 0)
 #define IS_MCHECK_EXC(regs)	(((regs)->trap & 4) != 0)
 #define IS_DEBUG_EXC(regs)	(((regs)->trap & 8) != 0)
 #define NV_REG_POISON		0xdeadbeef
-#define CHECK_FULL_REGS(regs)						      \
-do {									      \
-	if ((regs)->trap & 1)						      \
-		printk(KERN_CRIT "%s: partial register set\n", __func__); \
-} while (0)
 #endif /* __powerpc64__ */
+#define CHECK_FULL_REGS(regs)	BUG_ON(!FULL_REGS(regs))
 
 static inline void set_trap(struct pt_regs *regs, unsigned long val)
 {
