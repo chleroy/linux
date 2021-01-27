@@ -20,6 +20,10 @@
 #include <asm/time.h>
 #include <asm/unistd.h>
 
+#if defined(CONFIG_PPC_ADV_DEBUG_REGS) && defined(CONFIG_PPC32)
+unsigned long global_dbcr0[NR_CPUS];
+#endif
+
 typedef long (*syscall_fn)(long, long, long, long, long, long);
 
 /* Has to run notrace because it is entered not completely "reconciled" */
