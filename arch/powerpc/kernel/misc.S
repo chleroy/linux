@@ -15,8 +15,29 @@
 #include <asm/asm-compat.h>
 #include <asm/asm-offsets.h>
 #include <asm/export.h>
+#include <asm/thread_info.h>
+#include <asm/ptrace.h>
 
 	.text
+
+.macro call_on_stack func newsp
+	mflr		r0
+	PPC_STL		r0,PPC_LR_STKOFF(r1)
+	PPC_STLU	r1,THREAD_SIZE-STACK_FRAME_OVERHEAD(\newsp)
+	mr		r1,\newsp
+	bl		\func
+	PPC_LL		r1,0(r1)
+	PPC_LL		r0,PPC_LR_STKOFF(r1)
+	mtlr		r0
+.endm
+
+_GLOBAL(call_do_softirq)
+	call_on_stack	__do_softirq r3
+	blr
+
+_GLOBAL(call_do_irq)
+	call_on_stack	__do_irq r4
+	blr
 
 /*
  * Returns (address we are running at) - (address we were linked at)
