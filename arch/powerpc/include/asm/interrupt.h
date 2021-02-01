@@ -16,6 +16,10 @@ struct interrupt_state {
 
 static inline void interrupt_enter_prepare(struct pt_regs *regs, struct interrupt_state *state)
 {
+#ifdef CONFIG_PPC32
+	if (regs->msr & MSR_EE)
+		trace_hardirqs_off();
+#endif
 	/*
 	 * Book3E reconciles irq soft mask in asm
 	 */
