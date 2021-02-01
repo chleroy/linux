@@ -76,6 +76,13 @@ notrace long system_call_exception(long r3, long r4, long r5,
 		kuap_check_amr();
 #endif
 
+#ifdef CONFIG_PPC_ADV_DEBUG_REGS
+	if (IS_ENABLED(CONFIG_PPC32) && unlikely(ts->debug.dbcr0 & DBCR0_IDM)) {
+		mtspr(SPRN_DBSR, -1);
+		mtspr(SPRN_DBCR0, global_dbcr0[smp_processor_id()]);
+	}
+#endif
+
 	account_cpu_user_entry();
 
 	account_stolen_time();
@@ -324,6 +331,22 @@ again:
 	local_paca->tm_scratch = regs->msr;
 #endif
 
+#ifdef CONFIG_PPC_ADV_DEBUG_REGS
+	if (unlikely(ts->debug.dbcr0 & DBCR0_IDM)) {
+		/*
+		 * Check to see if the dbcr0 register is set up to debug.
+		 * Use the internal debug mode bit to do this.
+		 */
+		mtmsr(mfmsr() & ~MSR_DE);
+		if (IS_ENABLED(CONFIG_PPC32)) {
+			isync();
+			global_dbcr0[smp_processor_id()] = mfspr(SPRN_DBCR0);
+		}
+		mtspr(SPRN_DBCR0, ts->debug.dbcr0);
+		mtspr(SPRN_DBSR, -1);
+	}
+#endif
+
 	account_cpu_user_exit();
 
 #ifdef CONFIG_PPC_BOOK3S_64 /* BOOK3E and ppc32 not using this */
@@ -404,13 +427,17 @@ again:
 		goto again;
 	}
 
-#ifdef CONFIG_PPC_BOOK3E
+#ifdef CONFIG_PPC_ADV_DEBUG_REGS
 	if (unlikely(ts->debug.dbcr0 & DBCR0_IDM)) {
 		/*
 		 * Check to see if the dbcr0 register is set up to debug.
 		 * Use the internal debug mode bit to do this.
 		 */
 		mtmsr(mfmsr() & ~MSR_DE);
+		if (IS_ENABLED(CONFIG_PPC32)) {
+			isync();
+			global_dbcr0[smp_processor_id()] = mfspr(SPRN_DBCR0);
+		}
 		mtspr(SPRN_DBCR0, ts->debug.dbcr0);
 		mtspr(SPRN_DBSR, -1);
 	}
