@@ -52,6 +52,13 @@ static inline void interrupt_enter_prepare(struct pt_regs *regs, struct interrup
 	if (user_mode(regs))
 		account_cpu_user_entry();
 #endif
+
+#if (defined(CONFIG_BOOKE) || defined(CONFIG_40x))
+	if (IS_ENABLED(CONFIG_PPC32) && unlikely(ts->debug.dbcr0 & DBCR0_IDM)) {
+		mtspr(SPRN_DBSR, -1);
+		mtspr(SPRN_DBCR0, global_dbcr0[smp_processor_id()]);
+	}
+#endif
 }
 
 /*
