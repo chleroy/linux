@@ -264,13 +264,11 @@ label:
 #define EXCEPTION(n, intno, label, hdlr, xfer)			\
 	START_EXCEPTION(label);					\
 	NORMAL_EXCEPTION_PROLOG(intno);				\
-	addi	r3,r1,STACK_FRAME_OVERHEAD;			\
 	xfer(n, hdlr)
 
 #define CRITICAL_EXCEPTION(n, intno, label, hdlr)			\
 	START_EXCEPTION(label);						\
 	CRITICAL_EXCEPTION_PROLOG(intno);				\
-	addi	r3,r1,STACK_FRAME_OVERHEAD;				\
 	EXC_XFER_TEMPLATE(hdlr, n+2, (MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE)), \
 			  crit_transfer_to_handler, ret_from_crit_exc)
 
@@ -279,7 +277,6 @@ label:
 	MCHECK_EXCEPTION_PROLOG;				\
 	mfspr	r5,SPRN_ESR;					\
 	stw	r5,_ESR(r11);					\
-	addi	r3,r1,STACK_FRAME_OVERHEAD;			\
 	EXC_XFER_TEMPLATE(hdlr, n+4, (MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE)), \
 			  mcheck_transfer_to_handler, ret_from_mcheck_exc)
 
@@ -362,7 +359,6 @@ label:
 	/* continue normal handling for a debug exception... */		      \
 2:	mfspr	r4,SPRN_DBSR;						      \
 	stw	r4,_ESR(r11);		/* DebugException takes DBSR in _ESR */\
-	addi	r3,r1,STACK_FRAME_OVERHEAD;				      \
 	EXC_XFER_TEMPLATE(DebugException, 0x2008, (MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE)), debug_transfer_to_handler, ret_from_debug_exc)
 
 #define DEBUG_CRIT_EXCEPTION						      \
@@ -416,7 +412,6 @@ label:
 	/* continue normal handling for a critical exception... */	      \
 2:	mfspr	r4,SPRN_DBSR;						      \
 	stw	r4,_ESR(r11);		/* DebugException takes DBSR in _ESR */\
-	addi	r3,r1,STACK_FRAME_OVERHEAD;				      \
 	EXC_XFER_TEMPLATE(DebugException, 0x2002, (MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE)), crit_transfer_to_handler, ret_from_crit_exc)
 
 #define DATA_STORAGE_EXCEPTION						      \
@@ -441,7 +436,6 @@ label:
 	NORMAL_EXCEPTION_PROLOG(ALIGNMENT);		      \
 	mfspr   r4,SPRN_DEAR;           /* Grab the DEAR and save it */	      \
 	stw     r4,_DEAR(r11);						      \
-	addi    r3,r1,STACK_FRAME_OVERHEAD;				      \
 	EXC_XFER_STD(0x0600, alignment_exception)
 
 #define PROGRAM_EXCEPTION						      \
@@ -449,7 +443,6 @@ label:
 	NORMAL_EXCEPTION_PROLOG(PROGRAM);		      \
 	mfspr	r4,SPRN_ESR;		/* Grab the ESR and save it */	      \
 	stw	r4,_ESR(r11);						      \
-	addi	r3,r1,STACK_FRAME_OVERHEAD;				      \
 	EXC_XFER_STD(0x0700, program_check_exception)
 
 #define DECREMENTER_EXCEPTION						      \
@@ -457,7 +450,6 @@ label:
 	NORMAL_EXCEPTION_PROLOG(DECREMENTER);		      \
 	lis     r0,TSR_DIS@h;           /* Setup the DEC interrupt mask */    \
 	mtspr   SPRN_TSR,r0;		/* Clear the DEC interrupt */	      \
-	addi    r3,r1,STACK_FRAME_OVERHEAD;				      \
 	EXC_XFER_LITE(0x0900, timer_interrupt)
 
 #define FP_UNAVAILABLE_EXCEPTION					      \
@@ -466,8 +458,7 @@ label:
 	beq	1f;							      \
 	bl	load_up_fpu;		/* if from user, just load it up */   \
 	b	fast_exception_return;					      \
-1:	addi	r3,r1,STACK_FRAME_OVERHEAD;				      \
-	EXC_XFER_STD(0x800, kernel_fp_unavailable_exception)
+1:	EXC_XFER_STD(0x800, kernel_fp_unavailable_exception)
 
 #else /* __ASSEMBLY__ */
 struct exception_regs {

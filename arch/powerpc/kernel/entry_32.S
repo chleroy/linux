@@ -119,6 +119,7 @@ _ASM_NOKPROBE_SYMBOL(transfer_to_handler_full)
 	.globl	transfer_to_handler
 transfer_to_handler:
 	SAVE_NVGPRS(r11)
+	addi	r3,r1,STACK_FRAME_OVERHEAD
 	stw	r2,GPR2(r11)
 	stw	r12,_NIP(r11)
 	stw	r9,_MSR(r11)
@@ -131,8 +132,7 @@ transfer_to_handler:
 	tovirt(r12, r12)
 	beq	2f			/* if from user, fix up THREAD.regs */
 	addi	r2, r12, -THREAD
-	addi	r11,r1,STACK_FRAME_OVERHEAD
-	stw	r11,PT_REGS(r12)
+	stw	r3,PT_REGS(r12)
 #ifdef CONFIG_PPC_BOOK3S_32
 	kuep_lock r11, r12
 #endif
@@ -257,7 +257,6 @@ ret_from_kernel_thread:
  */
 	.globl	handle_page_fault
 handle_page_fault:
-	addi	r3,r1,STACK_FRAME_OVERHEAD
 	bl	do_page_fault
 	cmpwi	r3,0
 	beq+	ret_from_except
