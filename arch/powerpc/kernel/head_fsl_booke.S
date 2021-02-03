@@ -370,9 +370,13 @@ interrupt_base:
 	stw	r4, _DEAR(r11)
 	andis.	r10,r5,(ESR_ILK|ESR_DLK)@h
 	bne	1f
-	EXC_XFER_LITE(0x0300, do_page_fault)
+	bl	transfer_to_handler
+	bl	do_page_fault
+	b	ret_from_except
 1:
-	EXC_XFER_LITE(0x0300, CacheLockingException)
+	bl	transfer_to_handler
+	bl	CacheLockingException
+	b	ret_from_except
 
 	/* Instruction Storage Interrupt */
 	INSTRUCTION_STORAGE_EXCEPTION
@@ -617,7 +621,9 @@ END_BTB_FLUSH_SECTION
 	beq	1f
 	bl	load_up_spe
 	b	fast_exception_return
-1:	EXC_XFER_LITE(0x2010, KernelSPE)
+1:	bl	transfer_to_handler
+	bl	KernelSPE
+	b	ret_from_except
 #elif defined(CONFIG_SPE_POSSIBLE)
 	EXCEPTION(0x2020, SPE_UNAVAIL, SPEUnavailable, \
 		  unknown_exception, EXC_XFER_STD)

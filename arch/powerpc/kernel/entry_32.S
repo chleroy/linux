@@ -97,13 +97,6 @@ crit_transfer_to_handler:
 _ASM_NOKPROBE_SYMBOL(crit_transfer_to_handler)
 #endif
 
-#ifdef CONFIG_40x
-	.globl	crit_transfer_to_handler
-crit_transfer_to_handler:
-	/* fall through */
-_ASM_NOKPROBE_SYMBOL(crit_transfer_to_handler)
-#endif
-
 /*
  * This code finishes saving the registers to the exception frame
  * and jumps to the appropriate handler for the exception, turning
@@ -111,11 +104,7 @@ _ASM_NOKPROBE_SYMBOL(crit_transfer_to_handler)
  * Note that we rely on the caller having set cr0.eq iff the exception
  * occurred in kernel mode (i.e. MSR:PR = 0).
  */
-	.globl	transfer_to_handler_full
 transfer_to_handler_full:
-_ASM_NOKPROBE_SYMBOL(transfer_to_handler_full)
-	/* fall through */
-
 	.globl	transfer_to_handler
 transfer_to_handler:
 	SAVE_NVGPRS(r11)
@@ -356,11 +345,6 @@ fast_exception_return:
 	bl	unrecoverable_exception
 	b	. /* should not get here */
 _ASM_NOKPROBE_SYMBOL(fast_exception_return)
-
-	.globl	ret_from_except_full
-ret_from_except_full:
-	REST_NVGPRS(r1)
-	/* fall through */
 
 	.globl	ret_from_except
 ret_from_except:

@@ -268,34 +268,25 @@ label:
 #define EXCEPTION(n, intno, label, hdlr, xfer)			\
 	START_EXCEPTION(label);					\
 	NORMAL_EXCEPTION_PROLOG(n, intno);			\
-	xfer(n, hdlr)
+	bl	transfer_to_handler;				\
+	bl	hdlr;						\
+	b	ret_from_except
 
 #define CRITICAL_EXCEPTION(n, intno, label, hdlr)			\
 	START_EXCEPTION(label);						\
 	CRITICAL_EXCEPTION_PROLOG(n, intno);				\
-	EXC_XFER_TEMPLATE(hdlr, n+2, (MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE)), \
-			  crit_transfer_to_handler, ret_from_crit_exc)
+	bl	crit_transfer_to_handler;				\
+	bl	hdlr;							\
+	b	ret_from_crit_exc
 
 #define MCHECK_EXCEPTION(n, label, hdlr)			\
 	START_EXCEPTION(label);					\
 	MCHECK_EXCEPTION_PROLOG(n);				\
 	mfspr	r5,SPRN_ESR;					\
 	stw	r5,_ESR(r11);					\
-	EXC_XFER_TEMPLATE(hdlr, n+4, (MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE)), \
-			  mcheck_transfer_to_handler, ret_from_mcheck_exc)
-
-#define EXC_XFER_TEMPLATE(hdlr, trap, msr, tfer, ret)	\
-	bl	tfer;						\
+	bl	mcheck_transfer_to_handler;			\
 	bl	hdlr;						\
-	b	ret;						\
-
-#define EXC_XFER_STD(n, hdlr)		\
-	EXC_XFER_TEMPLATE(hdlr, n, MSR_KERNEL, transfer_to_handler_full, \
-			  ret_from_except_full)
-
-#define EXC_XFER_LITE(n, hdlr)		\
-	EXC_XFER_TEMPLATE(hdlr, n, MSR_KERNEL, transfer_to_handler, \
-			  ret_from_except)
+	b	ret_from_mcheck_exc
 
 /* Check for a single step debug exception while in an exception
  * handler before state has been saved.  This is to catch the case
@@ -361,7 +352,9 @@ label:
 	/* continue normal handling for a debug exception... */		      \
 2:	mfspr	r4,SPRN_DBSR;						      \
 	stw	r4,_ESR(r11);		/* DebugException takes DBSR in _ESR */\
-	EXC_XFER_TEMPLATE(DebugException, 0x2008, (MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE)), debug_transfer_to_handler, ret_from_debug_exc)
+	bl	debug_transfer_to_handler;				      \
+	bl	DebugException;						      \
+	b	ret_from_debug_exc
 
 #define DEBUG_CRIT_EXCEPTION						      \
 	START_EXCEPTION(DebugCrit);					      \
@@ -414,7 +407,9 @@ label:
 	/* continue normal handling for a critical exception... */	      \
 2:	mfspr	r4,SPRN_DBSR;						      \
 	stw	r4,_ESR(r11);		/* DebugException takes DBSR in _ESR */\
-	EXC_XFER_TEMPLATE(DebugException, 0x2002, (MSR_KERNEL & ~(MSR_ME|MSR_DE|MSR_CE)), crit_transfer_to_handler, ret_from_crit_exc)
+	bl	crit_transfer_to_handler;				      \
+	bl	DebugException;						      \
+	b	ret_from_crit_exc
 
 #define DATA_STORAGE_EXCEPTION						      \
 	START_EXCEPTION(DataStorage)					      \
@@ -466,7 +461,9 @@ label:
 	beq	1f;							      \
 	bl	load_up_fpu;		/* if from user, just load it up */   \
 	b	fast_exception_return;					      \
-1:	EXC_XFER_STD(0x800, kernel_fp_unavailable_exception)
+1:	bl	transfer_to_handler;					      \
+	bl	kernel_fp_unavailable_exception;			      \
+	b	ret_from_except
 
 #else /* __ASSEMBLY__ */
 struct exception_regs {
