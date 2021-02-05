@@ -59,8 +59,7 @@
 prepare_transfer_to_handler:
 	andi.	r0,r9,MSR_PR
 	addi	r12, r2, THREAD
-	beq	2f			/* if from user, fix up THREAD.regs */
-	stw	r3,PT_REGS(r12)
+	beq	2f
 #ifdef CONFIG_PPC_BOOK3S_32
 	kuep_lock r11, r12
 #endif
