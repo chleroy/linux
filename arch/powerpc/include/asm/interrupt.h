@@ -37,6 +37,8 @@ static inline void interrupt_enter_prepare(struct pt_regs *regs, struct interrup
 		kuep_lock();
 		current->thread.regs = regs;
 		account_cpu_user_entry();
+	} else {
+		kuap_save_and_lock(regs);
 	}
 #endif
 	/*

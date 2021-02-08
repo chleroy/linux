@@ -26,24 +26,7 @@
 #include <asm/book3s/32/kup.h>
 #endif
 
-#ifdef __ASSEMBLY__
-#ifndef CONFIG_PPC_KUAP
-.macro kuap_save_and_lock	sp, thread, gpr1, gpr2, gpr3
-.endm
-
-.macro kuap_restore	sp, current, gpr1, gpr2, gpr3
-.endm
-
-.macro kuap_check	current, gpr
-.endm
-
-.macro kuap_check_amr	gpr1, gpr2
-.endm
-
-#endif
-
-#else /* !__ASSEMBLY__ */
-
+#ifndef __ASSEMBLY__
 extern bool disable_kuep;
 extern bool disable_kuap;
 

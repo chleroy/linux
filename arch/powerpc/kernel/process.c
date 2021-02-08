@@ -1255,6 +1255,9 @@ struct task_struct *__switch_to(struct task_struct *prev,
 	 */
 	restore_sprs(old_thread, new_thread);
 
+#ifdef CONFIG_PPC32
+	kuap_check();
+#endif
 	last = _switch(old_thread, new_thread);
 
 #ifdef CONFIG_PPC_BOOK3S_64
