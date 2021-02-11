@@ -2161,11 +2161,13 @@ DEFINE_INTERRUPT_HANDLER(SPEFloatingPointRoundException)
  * in the MSR is 0.  This indicates that SRR0/1 are live, and that
  * we therefore lost state by taking this exception.
  */
-DEFINE_INTERRUPT_HANDLER(unrecoverable_exception)
+__noreturn DEFINE_INTERRUPT_HANDLER(unrecoverable_exception)
 {
 	pr_emerg("Unrecoverable exception %lx at %lx (msr=%lx)\n",
 		 regs->trap, regs->nip, regs->msr);
 	die("Unrecoverable exception", regs, SIGABRT);
+	/* die() should not return */
+	BUG();
 }
 
 #if defined(CONFIG_BOOKE_WDT) || defined(CONFIG_40x)
