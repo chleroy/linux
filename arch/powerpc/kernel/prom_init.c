@@ -152,7 +152,7 @@ static struct prom_t __prombss prom;
 static unsigned long __prombss prom_entry;
 
 static char __prombss of_stdout_device[256];
-static char __prombss prom_scratch[256];
+static char __prombss prom_scratch[COMMAND_LINE_SIZE];
 
 static unsigned long __prombss dt_header_start;
 static unsigned long __prombss dt_struct_start, dt_struct_end;
@@ -770,24 +770,23 @@ static unsigned long prom_memparse(const char *ptr, const char **retptr)
  * Early parsing of the command line passed to the kernel, used for
  * "mem=x" and the options that affect the iommu
  */
+#define cmdline_strlcat prom_strlcat
+#define cmdline_strlcpy prom_strlcpy
+#include <linux/cmdline.h>
+
 static void __init early_cmdline_parse(void)
 {
 	const char *opt;
-
-	char *p;
 	int l = 0;
-
-	prom_cmd_line[0] = 0;
-	p = prom_cmd_line;
+	bool truncated;
 
 	if (!IS_ENABLED(CONFIG_CMDLINE_FORCE) && (long)prom.chosen > 0)
-		l = prom_getprop(prom.chosen, "bootargs", p, COMMAND_LINE_SIZE-1);
+		l = prom_getprop(prom.chosen, "bootargs", prom_scratch,
+				 COMMAND_LINE_SIZE - 1);
 
-	if (IS_ENABLED(CONFIG_CMDLINE_EXTEND) || l <= 0 || p[0] == '\0')
-		prom_strlcat(prom_cmd_line, " " CONFIG_CMDLINE,
-			     sizeof(prom_cmd_line));
+	truncated = !__cmdline_build(prom_cmd_line, l > 0 ? prom_scratch : NULL);
 
-	prom_printf("command line: %s\n", prom_cmd_line);
+	prom_printf("command line: %s %s\n", prom_cmd_line, truncated ? "[truncated]" : "");
 
 #ifdef CONFIG_PPC64
 	opt = prom_strstr(prom_cmd_line, "iommu=");
