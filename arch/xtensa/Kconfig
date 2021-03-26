@@ -16,6 +16,7 @@ config XTENSA
 	select COMMON_CLK
 	select DMA_REMAP if MMU
 	select GENERIC_ATOMIC64
+	select GENERIC_CMDLINE
 	select GENERIC_IRQ_SHOW
 	select GENERIC_PCI_IOMAP
 	select GENERIC_SCHED_CLOCK
@@ -352,20 +353,6 @@ config GENERIC_CALIBRATE_DELAY
 	bool "Auto calibration of the BogoMIPS value"
 	help
 	  The BogoMIPS value can easily be derived from the CPU frequency.
-
-config CMDLINE_BOOL
-	bool "Default bootloader kernel arguments"
-
-config CMDLINE
-	string "Initial kernel command string"
-	depends on CMDLINE_BOOL
-	default "console=ttyS0,38400 root=/dev/ram"
-	help
-	  On some architectures (EBSA110 and CATS), there is currently no way
-	  for the boot loader to pass arguments to the kernel. For these
-	  architectures, you should supply some command-line options at build
-	  time by entering them here. As a minimum, you should specify the
-	  memory size and the root device (e.g., mem=64M root=/dev/nfs).
 
 config USE_OF
 	bool "Flattened Device Tree support"

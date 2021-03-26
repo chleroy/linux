@@ -25,6 +25,7 @@
 #include <linux/cpu.h>
 #include <linux/of.h>
 #include <linux/of_fdt.h>
+#include <linux/cmdline.h>
 
 #if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_DUMMY_CONSOLE)
 # include <linux/console.h>
@@ -72,10 +73,6 @@ extern unsigned long loops_per_jiffy;
 /* Command line specified as configuration option. */
 
 static char __initdata command_line[COMMAND_LINE_SIZE];
-
-#ifdef CONFIG_CMDLINE_BOOL
-static char default_command_line[COMMAND_LINE_SIZE] __initdata = CONFIG_CMDLINE;
-#endif
 
 #ifdef CONFIG_PARSE_BOOTPARAM
 /*
@@ -257,10 +254,7 @@ void __init init_arch(bp_tag_t *bp_start)
 	early_init_devtree(dtb_start);
 #endif
 
-#ifdef CONFIG_CMDLINE_BOOL
-	if (!command_line[0])
-		strlcpy(command_line, default_command_line, COMMAND_LINE_SIZE);
-#endif
+	cmdline_build(command_line, command_line);
 
 	/* Early hook for platforms */
 
