@@ -25,7 +25,7 @@ struct {
 	char bootstr_buf[BARG_LEN];
 } bootstr_info = {
 	.bootstr_len = BARG_LEN,
-#ifdef CONFIG_CMDLINE
+#if CONFIG_CMDLINE != ""
 	.bootstr_valid = 1,
 	.bootstr_buf = CONFIG_CMDLINE,
 #endif
