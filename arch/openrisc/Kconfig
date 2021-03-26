@@ -25,6 +25,7 @@ config OPENRISC
 	select HAVE_UID16
 	select GENERIC_ATOMIC64
 	select GENERIC_CLOCKEVENTS_BROADCAST
+	select GENERIC_CMDLINE
 	select GENERIC_STRNCPY_FROM_USER
 	select GENERIC_STRNLEN_USER
 	select GENERIC_SMP_IDLE_THREAD
@@ -161,15 +162,6 @@ config OPENRISC_HAVE_SHADOW_GPRS
 
 	  On SMP systems, this feature is mandatory.
 	  On a unicore system it's safe to say N here if you are unsure.
-
-config CMDLINE
-	string "Default kernel command string"
-	default ""
-	help
-	  On some architectures there is currently no way for the boot loader
-	  to pass arguments to the kernel. For these architectures, you should
-	  supply some command-line options at build time by entering them
-	  here.
 
 menu "Debugging options"
 
