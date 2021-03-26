@@ -75,7 +75,7 @@ static char * __init pic32_getcmdline(void)
 	 * arch_mem_init() has not been called yet, so we don't have a real
 	 * command line setup if using CONFIG_CMDLINE_BOOL.
 	 */
-#ifdef CONFIG_CMDLINE_OVERRIDE
+#ifdef CONFIG_CMDLINE_FORCE
 	return CONFIG_CMDLINE;
 #else
 	return fw_getcmdline();

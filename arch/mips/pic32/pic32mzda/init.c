@@ -40,9 +40,7 @@ void __init plat_mem_setup(void)
 	pr_info("Found following command lines\n");
 	pr_info(" boot_command_line: %s\n", boot_command_line);
 	pr_info(" arcs_cmdline     : %s\n", arcs_cmdline);
-#ifdef CONFIG_CMDLINE_BOOL
 	pr_info(" builtin_cmdline  : %s\n", CONFIG_CMDLINE);
-#endif
 	if (dtb != __dtb_start)
 		strlcpy(arcs_cmdline, boot_command_line, COMMAND_LINE_SIZE);
 

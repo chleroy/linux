@@ -244,15 +244,13 @@ static inline __init unsigned long get_random_boot(void)
 static inline __init bool kaslr_disabled(void)
 {
 	char *str;
-
-#if defined(CONFIG_CMDLINE_BOOL)
 	const char *builtin_cmdline = CONFIG_CMDLINE;
 
 	str = strstr(builtin_cmdline, "nokaslr");
 	if (str == builtin_cmdline ||
 	    (str > builtin_cmdline && *(str - 1) == ' '))
 		return true;
-#endif
+
 	str = strstr(arcs_cmdline, "nokaslr");
 	if (str == arcs_cmdline || (str > arcs_cmdline && *(str - 1) == ' '))
 		return true;
