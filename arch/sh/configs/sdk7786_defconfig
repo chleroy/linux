@@ -70,7 +70,7 @@ CONFIG_HOTPLUG_CPU=y
 CONFIG_PREEMPT=y
 CONFIG_INTC_USERIMASK=y
 CONFIG_INTC_BALANCING=y
-CONFIG_CMDLINE_OVERWRITE=y
+CONFIG_CMDLINE_FORCE=y
 CONFIG_CMDLINE="console=ttySC1,115200 earlyprintk=sh-sci.1,115200 root=/dev/sda1 nmi_debug=state,debounce rootdelay=5 pmb=iomap ignore_loglevel"
 CONFIG_PCI=y
 CONFIG_PCIEPORTBUS=y

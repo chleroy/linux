@@ -25,7 +25,7 @@ CONFIG_SH_DMA_API=y
 CONFIG_HEARTBEAT=y
 CONFIG_HZ_100=y
 CONFIG_PREEMPT=y
-CONFIG_CMDLINE_OVERWRITE=y
+CONFIG_CMDLINE_FORCE=y
 CONFIG_CMDLINE="console=ttySC1,115200 root=/dev/mtdblock2 rootfstype=jffs2 mem=63M mtdparts=physmap-flash.0:0x00100000(bootloader)ro,0x00500000(Kernel)ro,0x00A00000(Filesystem)"
 CONFIG_NET=y
 CONFIG_PACKET=y

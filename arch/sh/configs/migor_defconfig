@@ -15,7 +15,7 @@ CONFIG_NUMA=y
 CONFIG_SH_MIGOR=y
 # CONFIG_SH_TIMER_CMT is not set
 CONFIG_SECCOMP=y
-CONFIG_CMDLINE_OVERWRITE=y
+CONFIG_CMDLINE_FORCE=y
 CONFIG_CMDLINE="console=tty0 console=ttySC0,115200 earlyprintk=serial ip=on root=/dev/nfs ip=dhcp"
 CONFIG_NET=y
 CONFIG_PACKET=y
