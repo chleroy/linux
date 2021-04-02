@@ -13,6 +13,7 @@
 #include <linux/efi.h>
 #include <linux/kernel.h>
 #include <linux/printk.h> /* For CONSOLE_LOGLEVEL_* */
+#include <linux/cmdline.h>
 #include <asm/efi.h>
 #include <asm/setup.h>
 
@@ -339,13 +340,13 @@ void efi_apply_loadoptions_quirk(const void **load_options, int *load_options_si
  * Size of memory allocated return in *cmd_line_len.
  * Returns NULL on error.
  */
-char *efi_convert_cmdline(efi_loaded_image_t *image, int *cmd_line_len)
+char *efi_convert_cmdline(efi_loaded_image_t *image)
 {
 	const u16 *s2;
-	unsigned long cmdline_addr = 0;
+	unsigned long cmdline_addr = 0, options_addr = 0;
 	int options_chars = efi_table_attr(image, load_options_size);
 	const u16 *options = efi_table_attr(image, load_options);
-	int options_bytes = 0, safe_options_bytes = 0;  /* UTF-8 bytes */
+	int options_bytes = 0;  /* UTF-8 bytes */
 	bool in_quote = false;
 	efi_status_t status;
 
@@ -354,16 +355,12 @@ char *efi_convert_cmdline(efi_loaded_image_t *image, int *cmd_line_len)
 
 	if (options) {
 		s2 = options;
-		while (options_bytes < COMMAND_LINE_SIZE && options_chars--) {
+		while (options_chars--) {
 			u16 c = *s2++;
 
 			if (c < 0x80) {
 				if (c == L'\0' || c == L'\n')
 					break;
-				if (c == L'"')
-					in_quote = !in_quote;
-				else if (!in_quote && isspace((char)c))
-					safe_options_bytes = options_bytes;
 
 				options_bytes++;
 				continue;
@@ -395,24 +392,30 @@ char *efi_convert_cmdline(efi_loaded_image_t *image, int *cmd_line_len)
 				}
 			}
 		}
-		if (options_bytes >= COMMAND_LINE_SIZE) {
-			options_bytes = safe_options_bytes;
-			efi_err("Command line is too long: truncated to %d bytes\n",
-				options_bytes);
-		}
 	}
 
 	options_bytes++;	/* NUL termination */
 
 	status = efi_bs_call(allocate_pool, EFI_LOADER_DATA, options_bytes,
-			     (void **)&cmdline_addr);
+			     (void **)&options_addr);
 	if (status != EFI_SUCCESS)
 		return NULL;
 
-	snprintf((char *)cmdline_addr, options_bytes, "%.*ls",
+	snprintf((char *)options_addr, options_bytes, "%.*ls",
 		 options_bytes - 1, options);
 
-	*cmd_line_len = options_bytes;
+	status = efi_bs_call(allocate_pool, EFI_LOADER_DATA, COMMAND_LINE_SIZE,
+			     (void **)&cmdline_addr);
+	if (status != EFI_SUCCESS) {
+		efi_bs_call(free_pool, (void *)options_addr);
+		return NULL;
+	}
+
+	if (!__cmdline_build((char *)cmdline_addr, (char *)options_addr))
+		efi_err("Command line is too long\n");
+
+	efi_bs_call(free_pool, (void *)cmdline_addr);
+
 	return (char *)cmdline_addr;
 }
 

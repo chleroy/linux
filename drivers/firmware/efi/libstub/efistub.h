@@ -780,7 +780,7 @@ void efi_free(unsigned long size, unsigned long addr);
 
 void efi_apply_loadoptions_quirk(const void **load_options, int *load_options_size);
 
-char *efi_convert_cmdline(efi_loaded_image_t *image, int *cmd_line_len);
+char *efi_convert_cmdline(efi_loaded_image_t *image);
 
 efi_status_t efi_get_memory_map(struct efi_boot_memmap *map);
 
