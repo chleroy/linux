@@ -742,7 +742,7 @@ unsigned long efi_main(efi_handle_t handle,
 		goto fail;
 	}
 #endif
-	if (!IS_ENABLED(CONFIG_CMDLINE_OVERRIDE)) {
+	if (!IS_ENABLED(CONFIG_CMDLINE_FORCE)) {
 		unsigned long cmdline_paddr = ((u64)hdr->cmd_line_ptr |
 					       ((u64)boot_params->ext_cmd_line_ptr << 32));
 		status = efi_parse_options((char *)cmdline_paddr);
