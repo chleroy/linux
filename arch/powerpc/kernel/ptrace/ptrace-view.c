@@ -221,8 +221,16 @@ static int gpr_get(struct task_struct *target, const struct user_regset *regset,
 #ifdef CONFIG_PPC64
 	struct membuf to_softe = membuf_at(&to, offsetof(struct pt_regs, softe));
 #endif
+	int i;
+
 	if (target->thread.regs == NULL)
 		return -EIO;
+
+	if (!FULL_REGS(target->thread.regs)) {
+		/* We have a partial register set.  Fill 14-31 with bogus values */
+		for (i = 14; i < 32; i++)
+			target->thread.regs->gpr[i] = NV_REG_POISON;
+	}
 
 	membuf_write(&to, target->thread.regs, sizeof(struct user_pt_regs));
 
@@ -243,6 +251,8 @@ static int gpr_set(struct task_struct *target, const struct user_regset *regset,
 
 	if (target->thread.regs == NULL)
 		return -EIO;
+
+	CHECK_FULL_REGS(target->thread.regs);
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
 				 target->thread.regs,
@@ -717,9 +727,19 @@ static int gpr32_get(struct task_struct *target,
 		     const struct user_regset *regset,
 		     struct membuf to)
 {
+	int i;
+
 	if (target->thread.regs == NULL)
 		return -EIO;
 
+	if (!FULL_REGS(target->thread.regs)) {
+		/*
+		 * We have a partial register set.
+		 * Fill 14-31 with bogus values.
+		 */
+		for (i = 14; i < 32; i++)
+			target->thread.regs->gpr[i] = NV_REG_POISON;
+	}
 	return gpr32_get_common(target, regset, to,
 			&target->thread.regs->gpr[0]);
 }
@@ -732,6 +752,7 @@ static int gpr32_set(struct task_struct *target,
 	if (target->thread.regs == NULL)
 		return -EIO;
 
+	CHECK_FULL_REGS(target->thread.regs);
 	return gpr32_set_common(target, regset, pos, count, kbuf, ubuf,
 			&target->thread.regs->gpr[0]);
 }

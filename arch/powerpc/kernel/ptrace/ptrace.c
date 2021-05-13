@@ -59,6 +59,7 @@ long arch_ptrace(struct task_struct *child, long request,
 		if ((addr & (sizeof(long) - 1)) || !child->thread.regs)
 			break;
 
+		CHECK_FULL_REGS(child->thread.regs);
 		if (index < PT_FPR0)
 			ret = ptrace_get_reg(child, (int) index, &tmp);
 		else
@@ -80,6 +81,7 @@ long arch_ptrace(struct task_struct *child, long request,
 		if ((addr & (sizeof(long) - 1)) || !child->thread.regs)
 			break;
 
+		CHECK_FULL_REGS(child->thread.regs);
 		if (index < PT_FPR0)
 			ret = ptrace_put_reg(child, index, data);
 		else

@@ -304,6 +304,12 @@ int fix_alignment(struct pt_regs *regs)
 	struct instruction_op op;
 	int r, type;
 
+	/*
+	 * We require a complete register set, if not, then our assembly
+	 * is broken
+	 */
+	CHECK_FULL_REGS(regs);
+
 	if (is_kernel_addr(regs->nip))
 		r = copy_inst_from_kernel_nofault(&instr, (void *)regs->nip);
 	else
