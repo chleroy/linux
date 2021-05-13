@@ -213,32 +213,18 @@ static inline void interrupt_async_exit_prepare(struct pt_regs *regs, struct int
 
 struct interrupt_nmi_state {
 #ifdef CONFIG_PPC64
+#ifdef CONFIG_PPC_BOOK3S_64
 	u8 irq_soft_mask;
 	u8 irq_happened;
+#endif
 	u8 ftrace_enabled;
 #endif
 };
 
-static inline bool nmi_disables_ftrace(struct pt_regs *regs)
-{
-	/* Allow DEC and PMI to be traced when they are soft-NMI */
-	if (IS_ENABLED(CONFIG_PPC_BOOK3S_64)) {
-		if (TRAP(regs) == INTERRUPT_DECREMENTER)
-		       return false;
-		if (TRAP(regs) == INTERRUPT_PERFMON)
-		       return false;
-	}
-	if (IS_ENABLED(CONFIG_PPC_BOOK3E)) {
-		if (TRAP(regs) == INTERRUPT_PERFMON)
-			return false;
-	}
-
-	return true;
-}
-
 static inline void interrupt_nmi_enter_prepare(struct pt_regs *regs, struct interrupt_nmi_state *state)
 {
 #ifdef CONFIG_PPC64
+#ifdef CONFIG_PPC_BOOK3S_64
 	state->irq_soft_mask = local_paca->irq_soft_mask;
 	state->irq_happened = local_paca->irq_happened;
 
@@ -251,8 +237,9 @@ static inline void interrupt_nmi_enter_prepare(struct pt_regs *regs, struct inte
 	local_paca->irq_happened |= PACA_IRQ_HARD_DIS;
 
 	/* Don't do any per-CPU operations until interrupt state is fixed */
-
-	if (nmi_disables_ftrace(regs)) {
+#endif
+	/* Allow DEC and PMI to be traced when they are soft-NMI */
+	if (TRAP(regs) != 0x900 && TRAP(regs) != 0xf00 && TRAP(regs) != 0x260) {
 		state->ftrace_enabled = this_cpu_get_ftrace_enabled();
 		this_cpu_set_ftrace_enabled(0);
 	}
@@ -281,13 +268,15 @@ static inline void interrupt_nmi_exit_prepare(struct pt_regs *regs, struct inter
 	 */
 
 #ifdef CONFIG_PPC64
-	if (nmi_disables_ftrace(regs))
+	if (TRAP(regs) != 0x900 && TRAP(regs) != 0xf00 && TRAP(regs) != 0x260)
 		this_cpu_set_ftrace_enabled(state->ftrace_enabled);
 
+#ifdef CONFIG_PPC_BOOK3S_64
 	/* Check we didn't change the pending interrupt mask. */
 	WARN_ON_ONCE((state->irq_happened | PACA_IRQ_HARD_DIS) != local_paca->irq_happened);
 	local_paca->irq_happened = state->irq_happened;
 	local_paca->irq_soft_mask = state->irq_soft_mask;
+#endif
 #endif
 }
 
@@ -501,7 +490,6 @@ DECLARE_INTERRUPT_HANDLER(SMIException);
 DECLARE_INTERRUPT_HANDLER(handle_hmi_exception);
 DECLARE_INTERRUPT_HANDLER(unknown_exception);
 DECLARE_INTERRUPT_HANDLER_ASYNC(unknown_async_exception);
-DECLARE_INTERRUPT_HANDLER_NMI(unknown_nmi_exception);
 DECLARE_INTERRUPT_HANDLER(instruction_breakpoint_exception);
 DECLARE_INTERRUPT_HANDLER(RunModeException);
 DECLARE_INTERRUPT_HANDLER(single_step_exception);
@@ -525,7 +513,7 @@ DECLARE_INTERRUPT_HANDLER(altivec_assist_exception);
 DECLARE_INTERRUPT_HANDLER(CacheLockingException);
 DECLARE_INTERRUPT_HANDLER(SPEFloatingPointException);
 DECLARE_INTERRUPT_HANDLER(SPEFloatingPointRoundException);
-DECLARE_INTERRUPT_HANDLER_NMI(WatchdogException);
+DECLARE_INTERRUPT_HANDLER(WatchdogException);
 DECLARE_INTERRUPT_HANDLER(kernel_bad_stack);
 
 /* slb.c */
