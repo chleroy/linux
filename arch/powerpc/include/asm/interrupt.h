@@ -99,7 +99,7 @@ static inline void booke_restore_dbcr0(void)
 #endif
 }
 
-static inline void interrupt_enter_prepare(struct pt_regs *regs, struct interrupt_state *state)
+static inline void interrupt_common_enter_prepare(struct pt_regs *regs)
 {
 #ifdef CONFIG_PPC32
 	if (!arch_irq_disabled_regs(regs))
@@ -112,6 +112,11 @@ static inline void interrupt_enter_prepare(struct pt_regs *regs, struct interrup
 		kuap_save_and_lock(regs);
 	}
 #endif
+}
+
+static inline void interrupt_enter_prepare(struct pt_regs *regs, struct interrupt_state *state)
+{
+	interrupt_common_enter_prepare(regs);
 
 #ifdef CONFIG_PPC64
 	if (irq_soft_mask_set_return(IRQS_ALL_DISABLED) == IRQS_ENABLED)
@@ -208,6 +213,8 @@ static inline bool nmi_disables_ftrace(struct pt_regs *regs)
 
 static inline void interrupt_nmi_enter_prepare(struct pt_regs *regs, struct interrupt_nmi_state *state)
 {
+	interrupt_common_enter_prepare(regs);
+
 #ifdef CONFIG_PPC64
 	state->irq_soft_mask = local_paca->irq_soft_mask;
 	state->irq_happened = local_paca->irq_happened;
