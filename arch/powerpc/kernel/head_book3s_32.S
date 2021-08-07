@@ -688,6 +688,7 @@ hash_page_dsi:
 	mfsrr0	r5
 	mfsrr1	r9
 	rlwinm	r3, r3, 32 - 15, _PAGE_RW	/* DSISR_STORE -> _PAGE_RW */
+	rlwinm	r9, r9, 0, ~SRR1_ISI_NOPT
 	bl	hash_page
 	mfspr	r10, SPRN_SPRG_THREAD
 	restore_regs_thread r10
