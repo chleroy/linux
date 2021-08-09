@@ -56,14 +56,10 @@ prepare_transfer_to_handler:
 	mtcrf	0x01,r12
 	bt-	31-TLF_NAPPING,4f
 	bt-	31-TLF_SLEEPING,7f
-	addi	r12,r2,THREAD
-	kuap_save_and_lock r11, r12, r9, r5, r6
 	blr
 
 4:	rlwinm	r12,r12,0,~_TLF_NAPPING
 	stw	r12,TI_LOCAL_FLAGS(r2)
-	addi	r12,r2,THREAD
-	kuap_save_and_lock r11, r12, r9, r5, r6
 	b	power_save_ppc32_restore
 
 7:	rlwinm	r12,r12,0,~_TLF_SLEEPING
