@@ -32,25 +32,6 @@
 102:
 .endm
 
-.macro kuap_restore	sp, current, gpr1, gpr2, gpr3
-	lwz	\gpr2, STACK_REGS_KUAP(\sp)
-	rlwinm.	\gpr3, \gpr2, 28, 0xf0000000
-	stw	\gpr2, THREAD + KUAP(\current)
-	beq+	102f
-	mfsrin	\gpr1, \gpr2
-	rlwinm	\gpr1, \gpr1, 0, ~SR_KS	/* Clear Ks */
-	kuap_update_sr	\gpr1, \gpr2, \gpr3
-102:
-.endm
-
-.macro kuap_check	current, gpr
-#ifdef CONFIG_PPC_KUAP_DEBUG
-	lwz	\gpr, THREAD + KUAP(\current)
-999:	twnei	\gpr, 0
-	EMIT_BUG_ENTRY 999b, __FILE__, __LINE__, (BUGFLAG_WARNING | BUGFLAG_ONCE)
-#endif
-.endm
-
 #endif /* CONFIG_PPC_KUAP */
 
 #else /* !__ASSEMBLY__ */

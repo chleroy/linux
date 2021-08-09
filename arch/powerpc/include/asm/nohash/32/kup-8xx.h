@@ -16,20 +16,6 @@
 	stw	\gpr1, STACK_REGS_KUAP(\sp)
 .endm
 
-.macro kuap_restore	sp, current, gpr1, gpr2, gpr3
-	lwz	\gpr1, STACK_REGS_KUAP(\sp)
-	mtspr	SPRN_MD_AP, \gpr1
-.endm
-
-.macro kuap_check	current, gpr
-#ifdef CONFIG_PPC_KUAP_DEBUG
-	mfspr	\gpr, SPRN_MD_AP
-	rlwinm	\gpr, \gpr, 16, 0xffff
-999:	twnei	\gpr, MD_APG_KUAP@h
-	EMIT_BUG_ENTRY 999b, __FILE__, __LINE__, (BUGFLAG_WARNING | BUGFLAG_ONCE)
-#endif
-.endm
-
 #else /* !__ASSEMBLY__ */
 
 #include <asm/reg.h>

@@ -31,12 +31,6 @@
 .macro kuap_save_and_lock	sp, thread, gpr1, gpr2, gpr3
 .endm
 
-.macro kuap_restore	sp, current, gpr1, gpr2, gpr3
-.endm
-
-.macro kuap_check	current, gpr
-.endm
-
 .macro kuap_check_amr	gpr1, gpr2
 .endm
 
