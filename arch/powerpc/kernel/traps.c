@@ -221,7 +221,7 @@ static void oops_end(unsigned long flags, struct pt_regs *regs,
 	/*
 	 * system_reset_excption handles debugger, crash dump, panic, for 0x100
 	 */
-	if (TRAP(regs) == INTERRUPT_SYSTEM_RESET)
+	if (TRAP(regs) == 0x100)
 		return;
 
 	crash_fadump(regs, "die oops");
@@ -289,7 +289,7 @@ void die(const char *str, struct pt_regs *regs, long err)
 	/*
 	 * system_reset_excption handles debugger, crash dump, panic, for 0x100
 	 */
-	if (TRAP(regs) != INTERRUPT_SYSTEM_RESET) {
+	if (TRAP(regs) != 0x100) {
 		if (debugger(regs))
 			return;
 	}
@@ -1696,7 +1696,7 @@ DEFINE_INTERRUPT_HANDLER(facility_unavailable_exception)
 	u8 status;
 	bool hv;
 
-	hv = (TRAP(regs) == INTERRUPT_H_FAC_UNAVAIL);
+	hv = (TRAP(regs) == 0xf80);
 	if (hv)
 		value = mfspr(SPRN_HFSCR);
 	else

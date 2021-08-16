@@ -17,7 +17,6 @@
 #include <asm/firmware.h>
 #include <asm/ptrace.h>
 #include <asm/code-patching.h>
-#include <asm/interrupt.h>
 
 #ifdef CONFIG_PPC64
 #include "internal.h"
@@ -169,7 +168,7 @@ static bool regs_use_siar(struct pt_regs *regs)
 	 * they have not been setup using perf_read_regs() and so regs->result
 	 * is something random.
 	 */
-	return ((TRAP(regs) == INTERRUPT_PERFMON) && regs->result);
+	return ((TRAP(regs) == 0xf00) && regs->result);
 }
 
 /*
@@ -348,7 +347,7 @@ static inline void perf_read_regs(struct pt_regs *regs)
 	 * hypervisor samples as well as samples in the kernel with
 	 * interrupts off hence the userspace check.
 	 */
-	if (TRAP(regs) != INTERRUPT_PERFMON)
+	if (TRAP(regs) != 0xf00)
 		use_siar = 0;
 	else if ((ppmu->flags & PPMU_NO_SIAR))
 		use_siar = 0;
