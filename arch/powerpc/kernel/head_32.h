@@ -186,7 +186,7 @@ label:
 
 #endif
 
-#define EXCEPTION(n, label, hdlr)		\
+#define EXCEPTION(n, label, hdlr, xfer)		\
 	START_EXCEPTION(n, label)		\
 	EXCEPTION_PROLOG n label;		\
 	prepare_transfer_to_handler;		\
