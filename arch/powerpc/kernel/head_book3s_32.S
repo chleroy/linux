@@ -31,7 +31,6 @@
 #include <asm/kvm_book3s_asm.h>
 #include <asm/export.h>
 #include <asm/feature-fixups.h>
-#include <asm/interrupt.h>
 
 #include "head_32.h"
 
@@ -240,7 +239,7 @@ __secondary_hold_acknowledge:
 /* System reset */
 /* core99 pmac starts the seconary here by changing the vector, and
    putting it back to what it was (unknown_async_exception) when done.  */
-	EXCEPTION(INTERRUPT_SYSTEM_RESET, Reset, unknown_async_exception)
+	EXCEPTION(0x100, Reset, unknown_async_exception)
 
 /* Machine check */
 /*
@@ -256,7 +255,7 @@ __secondary_hold_acknowledge:
  * pointer when we take an exception from supervisor mode.)
  *	-- paulus.
  */
-	START_EXCEPTION(INTERRUPT_MACHINE_CHECK, MachineCheck)
+	START_EXCEPTION(0x200, MachineCheck)
 	EXCEPTION_PROLOG_0
 #ifdef CONFIG_PPC_CHRP
 	mtspr	SPRN_SPRG_SCRATCH2,r1
@@ -277,7 +276,7 @@ __secondary_hold_acknowledge:
 	b	interrupt_return
 
 /* Data access exception. */
-	START_EXCEPTION(INTERRUPT_DATA_STORAGE, DataAccess)
+	START_EXCEPTION(0x300, DataAccess)
 #ifdef CONFIG_PPC_BOOK3S_604
 BEGIN_MMU_FTR_SECTION
 	mtspr	SPRN_SPRG_SCRATCH2,r10
@@ -298,7 +297,7 @@ ALT_MMU_FTR_SECTION_END_IFSET(MMU_FTR_HPTE_TABLE)
 #endif
 1:	EXCEPTION_PROLOG_0 handle_dar_dsisr=1
 	EXCEPTION_PROLOG_1
-	EXCEPTION_PROLOG_2 INTERRUPT_DATA_STORAGE DataAccess handle_dar_dsisr=1
+	EXCEPTION_PROLOG_2 0x300 DataAccess handle_dar_dsisr=1
 	prepare_transfer_to_handler
 	lwz	r5, _DSISR(r1)
 	andis.	r0, r5, DSISR_DABRMATCH@h
@@ -311,7 +310,7 @@ ALT_MMU_FTR_SECTION_END_IFSET(MMU_FTR_HPTE_TABLE)
 
 
 /* Instruction access exception. */
-	START_EXCEPTION(INTERRUPT_INST_STORAGE, InstructionAccess)
+	START_EXCEPTION(0x400, InstructionAccess)
 	mtspr	SPRN_SPRG_SCRATCH0,r10
 	mtspr	SPRN_SPRG_SCRATCH1,r11
 	mfspr	r10, SPRN_SPRG_THREAD
@@ -331,7 +330,7 @@ END_MMU_FTR_SECTION_IFSET(MMU_FTR_HPTE_TABLE)
 	andi.	r11, r11, MSR_PR
 
 	EXCEPTION_PROLOG_1
-	EXCEPTION_PROLOG_2 INTERRUPT_INST_STORAGE InstructionAccess
+	EXCEPTION_PROLOG_2 0x400 InstructionAccess
 	andis.	r5,r9,DSISR_SRR1_MATCH_32S@h /* Filter relevant SRR1 bits */
 	stw	r5, _DSISR(r11)
 	stw	r12, _DAR(r11)
@@ -340,19 +339,19 @@ END_MMU_FTR_SECTION_IFSET(MMU_FTR_HPTE_TABLE)
 	b	interrupt_return
 
 /* External interrupt */
-	EXCEPTION(INTERRUPT_EXTERNAL, HardwareInterrupt, do_IRQ)
+	EXCEPTION(0x500, HardwareInterrupt, do_IRQ)
 
 /* Alignment exception */
-	START_EXCEPTION(INTERRUPT_ALIGNMENT, Alignment)
-	EXCEPTION_PROLOG INTERRUPT_ALIGNMENT Alignment handle_dar_dsisr=1
+	START_EXCEPTION(0x600, Alignment)
+	EXCEPTION_PROLOG 0x600 Alignment handle_dar_dsisr=1
 	prepare_transfer_to_handler
 	bl	alignment_exception
 	REST_NVGPRS(r1)
 	b	interrupt_return
 
 /* Program check exception */
-	START_EXCEPTION(INTERRUPT_PROGRAM, ProgramCheck)
-	EXCEPTION_PROLOG INTERRUPT_PROGRAM ProgramCheck
+	START_EXCEPTION(0x700, ProgramCheck)
+	EXCEPTION_PROLOG 0x700 ProgramCheck
 	prepare_transfer_to_handler
 	bl	program_check_exception
 	REST_NVGPRS(r1)
@@ -368,7 +367,7 @@ BEGIN_FTR_SECTION
  */
 	b 	ProgramCheck
 END_FTR_SECTION_IFSET(CPU_FTR_FPU_UNAVAILABLE)
-	EXCEPTION_PROLOG INTERRUPT_FP_UNAVAIL FPUnavailable
+	EXCEPTION_PROLOG 0x800 FPUnavailable
 	beq	1f
 	bl	load_up_fpu		/* if from user, just load it up */
 	b	fast_exception_return
@@ -380,16 +379,16 @@ END_FTR_SECTION_IFSET(CPU_FTR_FPU_UNAVAILABLE)
 #endif
 
 /* Decrementer */
-	EXCEPTION(INTERRUPT_DECREMENTER, Decrementer, timer_interrupt)
+	EXCEPTION(0x900, Decrementer, timer_interrupt)
 
 	EXCEPTION(0xa00, Trap_0a, unknown_exception)
 	EXCEPTION(0xb00, Trap_0b, unknown_exception)
 
 /* System call */
-	START_EXCEPTION(INTERRUPT_SYSCALL, SystemCall)
-	SYSCALL_ENTRY	INTERRUPT_SYSCALL
+	START_EXCEPTION(0xc00, SystemCall)
+	SYSCALL_ENTRY	0xc00
 
-	EXCEPTION(INTERRUPT_TRACE, SingleStep, single_step_exception)
+	EXCEPTION(0xd00, SingleStep, single_step_exception)
 	EXCEPTION(0xe00, Trap_0e, unknown_exception)
 
 /*
@@ -400,10 +399,10 @@ END_FTR_SECTION_IFSET(CPU_FTR_FPU_UNAVAILABLE)
  * non-altivec kernel running on a machine with altivec just
  * by executing an altivec instruction.
  */
-	START_EXCEPTION(INTERRUPT_PERFMON, PerformanceMonitorTrap)
+	START_EXCEPTION(0xf00, PerformanceMonitorTrap)
 	b	PerformanceMonitor
 
-	START_EXCEPTION(INTERRUPT_ALTIVEC_UNAVAIL, AltiVecUnavailableTrap)
+	START_EXCEPTION(0xf20, AltiVecUnavailableTrap)
 	b	AltiVecUnavailable
 
 	__HEAD
@@ -411,7 +410,7 @@ END_FTR_SECTION_IFSET(CPU_FTR_FPU_UNAVAILABLE)
  * Handle TLB miss for instruction on 603/603e.
  * Note: we get an alternate set of r0 - r3 to use automatically.
  */
-	. = INTERRUPT_INST_TLB_MISS_603
+	. = 0x1000
 InstructionTLBMiss:
 /*
  * r0:	scratch
@@ -477,7 +476,7 @@ InstructionAddressInvalid:
 /*
  * Handle TLB miss for DATA Load operation on 603/603e
  */
-	. = INTERRUPT_DATA_LOAD_TLB_MISS_603
+	. = 0x1100
 DataLoadTLBMiss:
 /*
  * r0:	scratch
@@ -555,7 +554,7 @@ DataAddressInvalid:
 /*
  * Handle TLB miss for DATA Store on 603/603e
  */
-	. = INTERRUPT_DATA_STORE_TLB_MISS_603
+	. = 0x1200
 DataStoreTLBMiss:
 /*
  * r0:	scratch
