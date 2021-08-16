@@ -67,6 +67,8 @@ prepare_transfer_to_handler:
 	bt-	31-TLF_NAPPING,4f
 	bt-	31-TLF_SLEEPING,7f
 #endif /* CONFIG_PPC_BOOK3S_32 || CONFIG_E500 */
+	.globl transfer_to_handler_cont
+transfer_to_handler_cont:
 	blr
 
 #if defined (CONFIG_PPC_BOOK3S_32) || defined(CONFIG_E500)
@@ -84,6 +86,7 @@ prepare_transfer_to_handler:
 	b	fast_exception_return
 #endif
 _ASM_NOKPROBE_SYMBOL(prepare_transfer_to_handler)
+_ASM_NOKPROBE_SYMBOL(transfer_to_handler_cont)
 
 	.globl	transfer_to_syscall
 transfer_to_syscall:
