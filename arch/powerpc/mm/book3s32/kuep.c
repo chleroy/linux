@@ -32,10 +32,10 @@ static __always_inline void kuep_update(u32 val)
 void kuep_lock(void)
 {
 	kuep_update(mfsr(0) | SR_NX);
-	isync();
 }
 
 void kuep_unlock(void)
 {
 	kuep_update(mfsr(0) & ~SR_NX);
+	isync();
 }
