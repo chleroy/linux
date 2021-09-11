@@ -1552,10 +1552,6 @@ void start_secondary(void *unused)
 {
 	unsigned int cpu = raw_smp_processor_id();
 
-	/* PPC64 calls setup_kup() in early_setup_secondary() */
-	if (IS_ENABLED(CONFIG_PPC32))
-		setup_kup();
-
 	mmgrab(&init_mm);
 	current->active_mm = &init_mm;
 
