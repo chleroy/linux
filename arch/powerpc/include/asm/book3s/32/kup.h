@@ -76,7 +76,7 @@ static inline void kuap_lock_one(unsigned long addr)
 
 static inline void kuap_unlock_one(unsigned long addr)
 {
-	if (WARN_ON(addr >= TASK_SIZE))
+	if (addr >= TASK_SIZE)
 		return;
 
 	mtsr(mfsr(addr) & ~SR_KS, addr);
