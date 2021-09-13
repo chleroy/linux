@@ -67,12 +67,18 @@ static inline void kuep_unlock(void)
 
 static inline void kuap_lock_one(unsigned long addr)
 {
+	if (addr >= TASK_SIZE)
+		return;
+
 	mtsr(mfsr(addr) | SR_KS, addr);
 	isync();	/* Context sync required after mtsr() */
 }
 
 static inline void kuap_unlock_one(unsigned long addr)
 {
+	if (WARN_ON(addr >= TASK_SIZE))
+		return;
+
 	mtsr(mfsr(addr) & ~SR_KS, addr);
 	isync();	/* Context sync required after mtsr() */
 }
