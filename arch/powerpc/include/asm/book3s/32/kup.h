@@ -183,6 +183,9 @@ static __always_inline void allow_user_access(void __user *to, const void __user
 	if (!(dir & KUAP_WRITE))
 		return;
 
+	if (WARN_ON_ONCE((__force u32)to >= TASK_SIZE))
+		return;
+
 	current->thread.kuap = (__force u32)to;
 	kuap_unlock_one((__force u32)to);
 }
