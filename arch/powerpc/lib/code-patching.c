@@ -190,10 +190,13 @@ static int do_patch_instruction(u32 *addr, ppc_inst_t instr)
 int patch_instruction(u32 *addr, ppc_inst_t instr)
 {
 	/* Make sure we aren't patching a freed init section */
-	if (init_mem_is_free && init_section_contains(addr, 4)) {
-		pr_debug("Skipping init section patching addr: 0x%px\n", addr);
+	if (system_state >= SYSTEM_FREEING_INITMEM && init_section_contains(addr, 4))
 		return 0;
-	}
+
+	if (!kernel_text_address((unsigned long)addr))
+		pr_warn_once("%s() called on invalid text address 0x%p from %pS\n",
+			     __func__, addr, __builtin_return_address(0));
+
 	return do_patch_instruction(addr, instr);
 }
 NOKPROBE_SYMBOL(patch_instruction);
