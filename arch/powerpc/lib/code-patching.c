@@ -194,7 +194,7 @@ int patch_instruction(u32 *addr, ppc_inst_t instr)
 		return 0;
 
 	if (!kernel_text_address((unsigned long)addr))
-		pr_warn_once("%s() called on invalid text address 0x%p from %pS\n",
+		pr_warn_ratelimited("%s() called on invalid text address 0x%p from %pS\n",
 			     __func__, addr, __builtin_return_address(0));
 
 	return do_patch_instruction(addr, instr);
