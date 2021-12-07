@@ -484,9 +484,7 @@ static int do_suspend(void)
 	ret = rtas_ibm_suspend_me(&status);
 	if (ret != 0) {
 		pr_err("ibm,suspend-me error: %d\n", status);
-#ifdef CONFIG_PPC_64S_HASH_MMU
 		slb_set_size(saved_slb_size);
-#endif
 	}
 
 	return ret;

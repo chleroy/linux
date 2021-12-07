@@ -333,10 +333,8 @@ static void __init radix_init_pgtable(void)
 	phys_addr_t start, end;
 	u64 i;
 
-#ifdef CONFIG_PPC_64S_HASH_MMU
 	/* We don't support slb for radix */
-	mmu_slb_size = 0;
-#endif
+	slb_set_size(0);
 
 	/*
 	 * Create the linear mapping
