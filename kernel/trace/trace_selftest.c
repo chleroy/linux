@@ -785,7 +785,8 @@ static struct fgraph_ops fgraph_ops __initdata  = {
 };
 
 #if defined(CONFIG_DYNAMIC_FTRACE) && \
-    defined(CONFIG_HAVE_DYNAMIC_FTRACE_WITH_ARGS)
+    defined(CONFIG_HAVE_DYNAMIC_FTRACE_WITH_ARGS) && \
+    defined(CONFIG_DYNAMIC_FTRACE_WITH_DIRECT_CALLS)
 #define TEST_DIRECT_TRAMP
 noinline __noclone static void trace_direct_tramp(void) { }
 #endif
