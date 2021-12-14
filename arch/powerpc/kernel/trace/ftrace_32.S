@@ -27,17 +27,51 @@ _GLOBAL(_mcount)
 EXPORT_SYMBOL(_mcount)
 
 _GLOBAL(ftrace_caller)
-	MCOUNT_SAVE_FRAME
-	/* r3 ends up with link register */
-	subi	r3, r3, MCOUNT_INSN_SIZE
-	lis	r5,function_trace_op@ha
-	lwz	r5,function_trace_op@l(r5)
-	li	r6, 0
+	/* Create our stack frame + pt_regs */
+	stwu	r1,-INT_FRAME_SIZE(r1)
+
+	/* Save all gprs to pt_regs */
+	SAVE_GPRS(3, 10, r1)
+
+	/* Save previous stack pointer (r1) */
+	addi	r8, r1, INT_FRAME_SIZE
+	stw	r8, GPR1(r1)
+
+	/* Get the _mcount() call site out of LR */
+	mflr	r7
+	/* Save it as pt_regs->nip */
+	stw     r7, _NIP(r1)
+	/* Save the read LR in pt_regs->link */
+	stw     r0, _LINK(r1)
+
+	lis	r3,function_trace_op@ha
+	lwz	r5,function_trace_op@l(r3)
+
+	/* Calculate ip from nip-4 into r3 for call below */
+	subi    r3, r7, MCOUNT_INSN_SIZE
+
+	/* Put the original return address in r4 as parent_ip */
+	mr	r4, r0
+
+	/* Load &pt_regs in r6 for call below */
+	addi    r6, r1, STACK_FRAME_OVERHEAD
 .globl ftrace_call
 ftrace_call:
 	bl	ftrace_stub
 	nop
-	MCOUNT_RESTORE_FRAME
+	/* Load ctr with the possibly modified NIP */
+	lwz	r3, _NIP(r1)
+	mtctr	r3
+
+	/* Restore gprs */
+	REST_GPRS(3, 10, r1)
+
+	/* Restore possibly modified LR */
+	lwz	r0, _LINK(r1)
+	mtlr	r0
+
+	/* Pop our stack frame */
+	addi r1, r1, INT_FRAME_SIZE
 ftrace_caller_common:
 #ifdef CONFIG_FUNCTION_GRAPH_TRACER
 .globl ftrace_graph_call
