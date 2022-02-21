@@ -158,9 +158,9 @@ void mod_tree_remove(struct module *mod);
 struct module *mod_find(unsigned long addr);
 #else /* !CONFIG_MODULES_TREE_LOOKUP */
 
-static void mod_tree_insert(struct module *mod) { }
-static void mod_tree_remove_init(struct module *mod) { }
-static void mod_tree_remove(struct module *mod) { }
+static inline void mod_tree_insert(struct module *mod) { }
+static inline void mod_tree_remove_init(struct module *mod) { }
+static inline void mod_tree_remove(struct module *mod) { }
 static inline struct module *mod_find(unsigned long addr)
 {
 	struct module *mod;
