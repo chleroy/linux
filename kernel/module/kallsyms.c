@@ -171,8 +171,7 @@ void add_kallsyms(struct module *mod, const struct load_info *info)
 	Elf_Shdr *symsec = &info->sechdrs[info->index.sym];
 
 	/* Set up to point into init section. */
-	mod->kallsyms = (struct mod_kallsyms __rcu *)mod->init_layout.base +
-		info->mod_kallsyms_init_off;
+	mod->kallsyms = (void __rcu *)mod->init_layout.base + info->mod_kallsyms_init_off;
 
 	/* The following is safe since this pointer cannot change */
 	rcu_dereference_sched(mod->kallsyms)->symtab = (void *)symsec->sh_addr;

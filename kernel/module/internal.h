@@ -212,12 +212,13 @@ static inline void kmemleak_load_module(const struct module *mod,
 					const struct load_info *info) { }
 #endif /* CONFIG_DEBUG_KMEMLEAK */
 
-#ifdef CONFIG_KALLSYMS
-#ifdef CONFIG_STACKTRACE_BUILD_ID
+#if defined(CONFIG_KALLSYMS) && defined(CONFIG_STACKTRACE_BUILD_ID)
 void init_build_id(struct module *mod, const struct load_info *info);
-#else /* !CONFIG_STACKTRACE_BUILD_ID */
+#else
 static inline void init_build_id(struct module *mod, const struct load_info *info) { }
 #endif
+
+#ifdef CONFIG_KALLSYMS
 void layout_symtab(struct module *mod, struct load_info *info);
 void add_kallsyms(struct module *mod, const struct load_info *info);
 unsigned long find_kallsyms_symbol_value(struct module *mod, const char *name);
