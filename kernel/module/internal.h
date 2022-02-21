@@ -181,22 +181,16 @@ void frob_text(const struct module_layout *layout, int (*set_memory)(unsigned lo
 #endif /* CONFIG_ARCH_HAS_STRICT_MODULE_RWX */
 
 #ifdef CONFIG_STRICT_MODULE_RWX
-void frob_rodata(const struct module_layout *layout,
-		 int (*set_memory)(unsigned long start, int num_pages));
-void frob_ro_after_init(const struct module_layout *layout,
-			int (*set_memory)(unsigned long start, int num_pages));
-void frob_writable_data(const struct module_layout *layout,
-			int (*set_memory)(unsigned long start, int num_pages));
 void module_enable_ro(const struct module *mod, bool after_init);
 void module_enable_nx(const struct module *mod);
 int module_enforce_rwx_sections(Elf_Ehdr *hdr, Elf_Shdr *sechdrs,
 				char *secstrings, struct module *mod);
 
 #else /* !CONFIG_STRICT_MODULE_RWX */
-static void module_enable_nx(const struct module *mod) { }
-static void module_enable_ro(const struct module *mod, bool after_init) {}
-static int module_enforce_rwx_sections(Elf_Ehdr *hdr, Elf_Shdr *sechdrs,
-				       char *secstrings, struct module *mod)
+static inline void module_enable_nx(const struct module *mod) { }
+static inline void module_enable_ro(const struct module *mod, bool after_init) {}
+static inline int module_enforce_rwx_sections(Elf_Ehdr *hdr, Elf_Shdr *sechdrs,
+					      char *secstrings, struct module *mod)
 {
 	return 0;
 }

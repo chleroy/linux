@@ -6,12 +6,13 @@
  */
 
 #include <linux/module.h>
+#include <linux/mm.h>
 #include <linux/vmalloc.h>
 #include <linux/set_memory.h>
 #include "internal.h"
 
-void frob_rodata(const struct module_layout *layout,
-		 int (*set_memory)(unsigned long start, int num_pages))
+static void frob_rodata(const struct module_layout *layout,
+			int (*set_memory)(unsigned long start, int num_pages))
 {
 	BUG_ON(!PAGE_ALIGNED(layout->base));
 	BUG_ON(!PAGE_ALIGNED(layout->text_size));
@@ -20,8 +21,8 @@ void frob_rodata(const struct module_layout *layout,
 		   (layout->ro_size - layout->text_size) >> PAGE_SHIFT);
 }
 
-void frob_ro_after_init(const struct module_layout *layout,
-			int (*set_memory)(unsigned long start, int num_pages))
+static void frob_ro_after_init(const struct module_layout *layout,
+			       int (*set_memory)(unsigned long start, int num_pages))
 {
 	BUG_ON(!PAGE_ALIGNED(layout->base));
 	BUG_ON(!PAGE_ALIGNED(layout->ro_size));
@@ -30,8 +31,8 @@ void frob_ro_after_init(const struct module_layout *layout,
 		   (layout->ro_after_init_size - layout->ro_size) >> PAGE_SHIFT);
 }
 
-void frob_writable_data(const struct module_layout *layout,
-			int (*set_memory)(unsigned long start, int num_pages))
+static void frob_writable_data(const struct module_layout *layout,
+			       int (*set_memory)(unsigned long start, int num_pages))
 {
 	BUG_ON(!PAGE_ALIGNED(layout->base));
 	BUG_ON(!PAGE_ALIGNED(layout->ro_after_init_size));
