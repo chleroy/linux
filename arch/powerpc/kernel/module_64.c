@@ -207,7 +207,7 @@ static unsigned long get_stubs_size(const Elf64_Ehdr *hdr,
 		}
 	}
 
-#ifdef CONFIG_DYNAMIC_FTRACE
+#ifdef CONFIG_FUNCTION_TRACER
 	/* make the trampoline to the ftrace_caller */
 	relocs++;
 #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
@@ -372,7 +372,7 @@ static bool is_mprofile_ftrace_call(const char *name)
 {
 	if (!strcmp("_mcount", name))
 		return true;
-#ifdef CONFIG_DYNAMIC_FTRACE
+#ifdef CONFIG_FUNCTION_TRACER
 	if (!strcmp("ftrace_caller", name))
 		return true;
 #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
@@ -740,7 +740,7 @@ int apply_relocate_add(Elf64_Shdr *sechdrs,
 	return 0;
 }
 
-#ifdef CONFIG_DYNAMIC_FTRACE
+#ifdef CONFIG_FUNCTION_TRACER
 int module_trampoline_target(struct module *mod, unsigned long addr,
 			     unsigned long *target)
 {

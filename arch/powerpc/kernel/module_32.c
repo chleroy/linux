@@ -39,7 +39,7 @@ static unsigned int count_relocs(const Elf32_Rela *rela, unsigned int num)
 			r_addend = rela[i].r_addend;
 		}
 
-#ifdef CONFIG_DYNAMIC_FTRACE
+#ifdef CONFIG_FUNCTION_TRACER
 	_count_relocs++;	/* add one for ftrace_caller */
 #endif
 	return _count_relocs;
@@ -288,7 +288,7 @@ int apply_relocate_add(Elf32_Shdr *sechdrs,
 	return 0;
 }
 
-#ifdef CONFIG_DYNAMIC_FTRACE
+#ifdef CONFIG_FUNCTION_TRACER
 int module_trampoline_target(struct module *mod, unsigned long addr,
 			     unsigned long *target)
 {

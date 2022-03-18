@@ -39,7 +39,7 @@ struct mod_arch_specific {
 	unsigned int init_plt_section;
 #endif /* powerpc64 */
 
-#ifdef CONFIG_DYNAMIC_FTRACE
+#ifdef CONFIG_FUNCTION_TRACER
 	unsigned long tramp;
 #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
 	unsigned long tramp_regs;
@@ -68,7 +68,7 @@ struct mod_arch_specific {
 #    endif	/* MODULE */
 #endif
 
-#ifdef CONFIG_DYNAMIC_FTRACE
+#ifdef CONFIG_FUNCTION_TRACER
 #    ifdef MODULE
 	asm(".section .ftrace.tramp,\"ax\",@nobits; .align 3; .previous");
 #    endif	/* MODULE */
