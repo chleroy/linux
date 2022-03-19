@@ -294,6 +294,8 @@
 #define PPC_INST_BL			0x48000001
 #define PPC_INST_BRANCH_COND		0x40800000
 
+#define PPC_INST_OFFSET24_MASK		0x03fffffc
+
 /* Prefixes */
 #define PPC_INST_LFS			0xc0000000
 #define PPC_INST_STFS			0xd0000000
@@ -572,6 +574,7 @@
 #define PPC_RAW_EIEIO()			(0x7c0006ac)
 
 #define PPC_RAW_BRANCH(addr)		(PPC_INST_BRANCH | ((addr) & 0x03fffffc))
+#define PPC_RAW_BL(offset)		(0x48000001 | ((offset) & PPC_INST_OFFSET24_MASK))
 
 /* Deal with instructions that older assemblers aren't aware of */
 #define	PPC_BCCTR_FLUSH		stringify_in_c(.long PPC_INST_BCCTR_FLUSH)
