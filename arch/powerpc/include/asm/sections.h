@@ -29,18 +29,6 @@ extern char start_virt_trampolines[];
 extern char end_virt_trampolines[];
 #endif
 
-/*
- * This assumes the kernel is never compiled -mcmodel=small or
- * the total .toc is always less than 64k.
- */
-static inline unsigned long kernel_toc_addr(void)
-{
-	unsigned long toc_ptr;
-
-	asm volatile("mr %0, 2" : "=r" (toc_ptr));
-	return toc_ptr;
-}
-
 static inline int overlaps_interrupt_vector_text(unsigned long start,
 							unsigned long end)
 {
@@ -59,6 +47,18 @@ static inline int overlaps_kernel_text(unsigned long start, unsigned long end)
 }
 
 #endif
+
+/*
+ * This assumes the kernel is never compiled -mcmodel=small or
+ * the total .toc is always less than 64k.
+ */
+static inline unsigned long kernel_toc_addr(void)
+{
+	unsigned long toc_ptr;
+
+	asm volatile("mr %0, 2" : "=r" (toc_ptr));
+	return toc_ptr;
+}
 
 #endif /* __KERNEL__ */
 #endif	/* _ASM_POWERPC_SECTIONS_H */
