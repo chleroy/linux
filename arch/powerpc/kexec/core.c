@@ -20,6 +20,7 @@
 #include <asm/pgalloc.h>
 #include <asm/prom.h>
 #include <asm/sections.h>
+#include <asm/firmware.h>
 
 void machine_kexec_mask_interrupts(void) {
 	unsigned int i;
