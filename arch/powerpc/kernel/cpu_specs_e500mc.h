@@ -16,46 +16,6 @@
 
 static struct cpu_spec __initdata cpu_specs[] = {
 #ifdef CONFIG_PPC32
-#ifndef CONFIG_PPC_E500MC
-	{	/* e500 */
-		.pvr_mask		= 0xffff0000,
-		.pvr_value		= 0x80200000,
-		.cpu_name		= "e500",
-		.cpu_features		= CPU_FTRS_E500,
-		.cpu_user_features	= COMMON_USER_BOOKE |
-			PPC_FEATURE_HAS_SPE_COMP |
-			PPC_FEATURE_HAS_EFP_SINGLE_COMP,
-		.cpu_user_features2	= PPC_FEATURE2_ISEL,
-		.mmu_features		= MMU_FTR_TYPE_FSL_E,
-		.icache_bsize		= 32,
-		.dcache_bsize		= 32,
-		.num_pmcs		= 4,
-		.oprofile_cpu_type	= "ppc/e500",
-		.cpu_setup		= __setup_cpu_e500v1,
-		.machine_check		= machine_check_e500,
-		.platform		= "ppc8540",
-	},
-	{	/* e500v2 */
-		.pvr_mask		= 0xffff0000,
-		.pvr_value		= 0x80210000,
-		.cpu_name		= "e500v2",
-		.cpu_features		= CPU_FTRS_E500_2,
-		.cpu_user_features	= COMMON_USER_BOOKE |
-			PPC_FEATURE_HAS_SPE_COMP |
-			PPC_FEATURE_HAS_EFP_SINGLE_COMP |
-			PPC_FEATURE_HAS_EFP_DOUBLE_COMP,
-		.cpu_user_features2	= PPC_FEATURE2_ISEL,
-		.mmu_features		= MMU_FTR_TYPE_FSL_E | MMU_FTR_BIG_PHYS,
-		.icache_bsize		= 32,
-		.dcache_bsize		= 32,
-		.num_pmcs		= 4,
-		.oprofile_cpu_type	= "ppc/e500",
-		.cpu_setup		= __setup_cpu_e500v2,
-		.machine_check		= machine_check_e500,
-		.platform		= "ppc8548",
-		.cpu_down_flush		= cpu_down_flush_e500v2,
-	},
-#else
 	{	/* e500mc */
 		.pvr_mask		= 0xffff0000,
 		.pvr_value		= 0x80230000,
@@ -74,9 +34,7 @@ static struct cpu_spec __initdata cpu_specs[] = {
 		.platform		= "ppce500mc",
 		.cpu_down_flush		= cpu_down_flush_e500mc,
 	},
-#endif /* CONFIG_PPC_E500MC */
 #endif /* CONFIG_PPC32 */
-#ifdef CONFIG_PPC_E500MC
 	{	/* e5500 */
 		.pvr_mask		= 0xffff0000,
 		.pvr_value		= 0x80240000,
@@ -120,21 +78,4 @@ static struct cpu_spec __initdata cpu_specs[] = {
 		.platform		= "ppce6500",
 		.cpu_down_flush		= cpu_down_flush_e6500,
 	},
-#endif /* CONFIG_PPC_E500MC */
-#ifdef CONFIG_PPC32
-	{	/* default match */
-		.pvr_mask		= 0x00000000,
-		.pvr_value		= 0x00000000,
-		.cpu_name		= "(generic E500 PPC)",
-		.cpu_features		= CPU_FTRS_E500,
-		.cpu_user_features	= COMMON_USER_BOOKE |
-			PPC_FEATURE_HAS_SPE_COMP |
-			PPC_FEATURE_HAS_EFP_SINGLE_COMP,
-		.mmu_features		= MMU_FTR_TYPE_FSL_E,
-		.icache_bsize		= 32,
-		.dcache_bsize		= 32,
-		.machine_check		= machine_check_e500,
-		.platform		= "powerpc",
-	}
-#endif /* CONFIG_PPC32 */
 };
