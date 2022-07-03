@@ -30,7 +30,7 @@ void flush_hugetlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
 
 static inline void hugepd_populate(hugepd_t *hpdp, pte_t *new, unsigned int pshift)
 {
-	/* We use the old format for PPC_FSL_BOOK3E */
+	/* We use the old format for PPC_E500 */
 	*hpdp = __hugepd(((unsigned long)new & ~PD_HUGE) | pshift);
 }
 
