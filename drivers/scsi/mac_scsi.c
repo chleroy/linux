@@ -478,7 +478,7 @@ static int __init mac_scsi_probe(struct platform_device *pdev)
 	if (irq)
 		instance->irq = irq->start;
 	else
-		instance->irq = NO_IRQ;
+		instance->irq = 0;
 
 	hostdata = shost_priv(instance);
 	hostdata->base = pio_mem->start;
@@ -495,7 +495,7 @@ static int __init mac_scsi_probe(struct platform_device *pdev)
 	if (error)
 		goto fail_init;
 
-	if (instance->irq != NO_IRQ) {
+	if (instance->irq) {
 		error = request_irq(instance->irq, macscsi_intr, IRQF_SHARED,
 		                    "NCR5380", instance);
 		if (error)
@@ -514,7 +514,7 @@ static int __init mac_scsi_probe(struct platform_device *pdev)
 	return 0;
 
 fail_host:
-	if (instance->irq != NO_IRQ)
+	if (instance->irq)
 		free_irq(instance->irq, instance);
 fail_irq:
 	NCR5380_exit(instance);
@@ -528,7 +528,7 @@ static int __exit mac_scsi_remove(struct platform_device *pdev)
 	struct Scsi_Host *instance = platform_get_drvdata(pdev);
 
 	scsi_remove_host(instance);
-	if (instance->irq != NO_IRQ)
+	if (instance->irq)
 		free_irq(instance->irq, instance);
 	NCR5380_exit(instance);
 	scsi_host_put(instance);
