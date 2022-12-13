@@ -241,6 +241,8 @@ config PPC
 	select HAVE_MOD_ARCH_SPECIFIC
 	select HAVE_NMI				if PERF_EVENTS || (PPC64 && PPC_BOOK3S)
 	select HAVE_OPTPROBES
+	select HAVE_OBJTOOL			if PPC32 || MPROFILE_KERNEL
+	select HAVE_OBJTOOL_MCOUNT		if HAVE_OBJTOOL
 	select HAVE_PERF_EVENTS
 	select HAVE_PERF_EVENTS_NMI		if PPC64
 	select HAVE_PERF_REGS
@@ -1043,19 +1045,6 @@ config PPC_SECVAR_SYSFS
 	  These variables are exposed to userspace via sysfs to enable
 	  read/write operations on these variables. Say Y if you have
 	  secure boot enabled and want to expose variables to userspace.
-
-config PPC_RTAS_FILTER
-	bool "Enable filtering of RTAS syscalls"
-	default y
-	depends on PPC_RTAS
-	help
-	  The RTAS syscall API has security issues that could be used to
-	  compromise system integrity. This option enforces restrictions on the
-	  RTAS calls and arguments passed by userspace programs to mitigate
-	  these issues.
-
-	  Say Y unless you know what you are doing and the filter is causing
-	  problems for you.
 
 endmenu
 
