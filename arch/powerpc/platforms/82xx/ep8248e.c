@@ -249,8 +249,7 @@ static void __init init_ioports(void)
 
 static void __init ep8248e_setup_arch(void)
 {
-	if (ppc_md.progress)
-		ppc_md.progress("ep8248e_setup_arch()", 0);
+	ppc_md_progress("ep8248e_setup_arch()", 0);
 
 	cpm2_reset();
 
@@ -280,8 +279,7 @@ static void __init ep8248e_setup_arch(void)
 
 	init_ioports();
 
-	if (ppc_md.progress)
-		ppc_md.progress("ep8248e_setup_arch(), finish", 0);
+	ppc_md_progress("ep8248e_setup_arch(), finish", 0);
 }
 
 static const struct of_device_id of_bus_ids[] __initconst = {

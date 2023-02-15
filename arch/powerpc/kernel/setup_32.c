@@ -127,8 +127,7 @@ __setup("l3cr=", ppc_setup_l3cr);
 static int __init ppc_init(void)
 {
 	/* clear the progress line */
-	if (ppc_md.progress)
-		ppc_md.progress("             ", 0xffff);
+	ppc_md_progress("             ", 0xffff);
 
 	/* call platform init */
 	if (ppc_md.init != NULL) {

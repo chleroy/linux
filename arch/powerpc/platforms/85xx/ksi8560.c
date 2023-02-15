@@ -135,8 +135,7 @@ static void __init ksi8560_setup_arch(void)
 
 	of_node_put(cpld);
 
-	if (ppc_md.progress)
-		ppc_md.progress("ksi8560_setup_arch()", 0);
+	ppc_md_progress("ksi8560_setup_arch()", 0);
 
 #ifdef CONFIG_CPM2
 	cpm2_reset();

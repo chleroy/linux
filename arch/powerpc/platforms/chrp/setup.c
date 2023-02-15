@@ -345,7 +345,7 @@ static void __init chrp_setup_arch(void)
 	 * Print the banner, then scroll down so boot progress
 	 * can be printed.  -- Cort
 	 */
-	if (ppc_md.progress) ppc_md.progress("Linux/PPC "UTS_RELEASE"\n", 0x0);
+	ppc_md_progress("Linux/PPC " UTS_RELEASE "\n", 0x0);
 }
 
 static void chrp_8259_cascade(struct irq_desc *desc)
@@ -546,8 +546,7 @@ chrp_init2(void)
 	request_region(0x80,0x10,"dma page reg");
 	request_region(0xc0,0x20,"dma2");
 
-	if (ppc_md.progress)
-		ppc_md.progress("  Have fun!    ", 0x7777);
+	ppc_md_progress("  Have fun!    ", 0x7777);
 }
 
 static int __init chrp_probe(void)

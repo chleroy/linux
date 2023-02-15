@@ -41,8 +41,7 @@ void __init p1010_rdb_pic_init(void)
  */
 static void __init p1010_rdb_setup_arch(void)
 {
-	if (ppc_md.progress)
-		ppc_md.progress("p1010_rdb_setup_arch()", 0);
+	ppc_md_progress("p1010_rdb_setup_arch()", 0);
 
 	fsl_pci_assign_primary();
 

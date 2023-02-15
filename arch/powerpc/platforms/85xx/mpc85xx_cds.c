@@ -319,8 +319,7 @@ static void __init mpc85xx_cds_setup_arch(void)
 	struct device_node *np;
 	int cds_pci_slot;
 
-	if (ppc_md.progress)
-		ppc_md.progress("mpc85xx_cds_setup_arch()", 0);
+	ppc_md_progress("mpc85xx_cds_setup_arch()", 0);
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc8548cds-fpga");
 	if (!np) {
@@ -340,7 +339,7 @@ static void __init mpc85xx_cds_setup_arch(void)
 		cds_pci_slot = ((in_8(&cadmus->cm_csr) >> 6) & 0x3) + 1;
 		snprintf(buf, 40, "CDS Version = 0x%x in slot %d\n",
 				in_8(&cadmus->cm_ver), cds_pci_slot);
-		ppc_md.progress(buf, 0);
+		ppc_md_progress(buf, 0);
 	}
 
 #ifdef CONFIG_PCI

@@ -125,8 +125,7 @@ void __init mpc83xx_setup_arch(void)
 	int immrsize = IS_ALIGNED(immrbase, SZ_2M) ? SZ_2M : SZ_1M;
 	unsigned long va = fix_to_virt(FIX_IMMR_BASE);
 
-	if (ppc_md.progress)
-		ppc_md.progress("mpc83xx_setup_arch()", 0);
+	ppc_md_progress("mpc83xx_setup_arch()", 0);
 
 	setbat(-1, va, immrbase, immrsize, PAGE_KERNEL_NCG);
 	update_bats();

@@ -347,7 +347,7 @@ void __init MMU_init_hw(void)
 	if (!mmu_has_feature(MMU_FTR_HPTE_TABLE))
 		return;
 
-	if ( ppc_md.progress ) ppc_md.progress("hash:enter", 0x105);
+	ppc_md_progress("hash:enter", 0x105);
 
 #define LG_HPTEG_SIZE	6		/* 64 bytes per HPTEG */
 #define SDR1_LOW_BITS	((n_hpteg - 1) >> 10)
@@ -371,7 +371,7 @@ void __init MMU_init_hw(void)
 	/*
 	 * Find some memory for the hash table.
 	 */
-	if ( ppc_md.progress ) ppc_md.progress("hash:find piece", 0x322);
+	ppc_md_progress("hash:find piece", 0x322);
 	Hash = memblock_alloc(Hash_size, Hash_size);
 	if (!Hash)
 		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
@@ -396,10 +396,8 @@ void __init MMU_init_hw_patch(void)
 	if (!mmu_has_feature(MMU_FTR_HPTE_TABLE))
 		return;
 
-	if (ppc_md.progress)
-		ppc_md.progress("hash:patch", 0x345);
-	if (ppc_md.progress)
-		ppc_md.progress("hash:done", 0x205);
+	ppc_md_progress("hash:patch", 0x345);
+	ppc_md_progress("hash:done", 0x205);
 
 	/* WARNING: Make sure nothing can trigger a KASAN check past this point */
 

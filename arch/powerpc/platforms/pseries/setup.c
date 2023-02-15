@@ -489,7 +489,7 @@ void __init pseries_little_endian_exceptions(void)
 		mdelay(get_longbusy_msecs(rc));
 	}
 	if (rc) {
-		ppc_md.progress("H_SET_MODE LE exception fail", 0);
+		ppc_md_progress("H_SET_MODE LE exception fail", 0);
 		panic("Could not enable little endian exceptions");
 	}
 }
@@ -886,11 +886,11 @@ static int __init pSeries_init_panel(void)
 {
 	/* Manually leave the kernel version on the panel. */
 #ifdef __BIG_ENDIAN__
-	ppc_md.progress("Linux ppc64\n", 0);
+	ppc_md_progress("Linux ppc64\n", 0);
 #else
-	ppc_md.progress("Linux ppc64le\n", 0);
+	ppc_md_progress("Linux ppc64le\n", 0);
 #endif
-	ppc_md.progress(init_utsname()->version, 0);
+	ppc_md_progress(init_utsname()->version, 0);
 
 	return 0;
 }

@@ -147,8 +147,7 @@ static void __init mpc85xx_ds_uli_init(void)
  */
 static void __init mpc85xx_ds_setup_arch(void)
 {
-	if (ppc_md.progress)
-		ppc_md.progress("mpc85xx_ds_setup_arch()", 0);
+	ppc_md_progress("mpc85xx_ds_setup_arch()", 0);
 
 	swiotlb_detect_4g();
 	fsl_pci_assign_primary();
