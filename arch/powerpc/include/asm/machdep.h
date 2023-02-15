@@ -240,6 +240,12 @@ static inline void log_error(char *buf, unsigned int err_type, int fatal)
 		ppc_md.log_error(buf, err_type, fatal);
 }
 
+static inline void ppc_md_progress(char *s, unsigned short hex)
+{
+	if (ppc_md.progress)
+		ppc_md.progress(s, hex);
+}
+
 #define __define_machine_initcall(mach, fn, id) \
 	static int __init __machine_initcall_##mach##_##fn(void) { \
 		if (machine_is(mach)) return fn(); \
