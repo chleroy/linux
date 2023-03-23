@@ -23,6 +23,7 @@ struct mm_struct;
 #ifndef PAGE_NONE
 #ifndef _PAGE_NA
 #define _PAGE_NA	0
+#define _PAGE_NAX	_PAGE_EXEC
 #define _PAGE_RO	_PAGE_READ
 #define _PAGE_ROX	(_PAGE_READ | _PAGE_EXEC)
 #define _PAGE_RW	(_PAGE_READ | _PAGE_WRITE)
@@ -41,6 +42,7 @@ struct mm_struct;
 /* Permission masks used to generate the __P and __S table */
 #ifndef PAGE_NONE
 #define PAGE_NONE	__pgprot(_PAGE_BASE | _PAGE_NA)
+#define PAGE_EXECONLY_X	__pgprot(_PAGE_BASE | _PAGE_NAX)
 #define PAGE_SHARED	__pgprot(_PAGE_BASE | _PAGE_RW)
 #define PAGE_SHARED_X	__pgprot(_PAGE_BASE | _PAGE_RWX)
 #define PAGE_COPY	__pgprot(_PAGE_BASE | _PAGE_RO)
