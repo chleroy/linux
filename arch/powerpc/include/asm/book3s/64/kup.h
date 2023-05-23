@@ -233,6 +233,7 @@ static __always_inline bool kuap_is_disabled(void)
 {
 	return !mmu_has_feature(MMU_FTR_BOOK3S_KUAP);
 }
+#define kuap_is_disabled kuap_is_disabled
 
 static inline void kuap_user_restore(struct pt_regs *regs)
 {

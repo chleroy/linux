@@ -11,8 +11,6 @@
 
 #include <linux/jump_label.h>
 
-extern struct static_key_false disable_kuap_key;
-
 static __always_inline bool kuep_is_disabled(void)
 {
 	return !IS_ENABLED(CONFIG_PPC_KUEP);
@@ -24,11 +22,6 @@ static __always_inline bool kuep_is_disabled(void)
 
 #define KUAP_NONE	(~0UL)
 #define KUAP_ALL	(~1UL)
-
-static __always_inline bool kuap_is_disabled(void)
-{
-	return static_branch_unlikely(&disable_kuap_key);
-}
 
 static inline void kuap_lock_one(unsigned long addr)
 {
