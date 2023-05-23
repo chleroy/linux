@@ -53,7 +53,7 @@ extern struct static_key_false disable_kuap_key;
 
 static __always_inline bool kuap_is_disabled(void)
 {
-	return static_branch_unlikely(&disable_kuap_key);
+	return IS_ENABLED(CONFIG_PPC_KUAP_BOOTTIME) && static_branch_unlikely(&disable_kuap_key);
 }
 #endif
 #else

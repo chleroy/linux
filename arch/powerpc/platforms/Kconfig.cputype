@@ -502,6 +502,16 @@ config PPC_KUAP
 
 	  If you're unsure, say Y.
 
+config PPC_KUAP_BOOTTIME
+	bool "Allow disabling Kernel Userspace Access Protection at boottime"
+	depends on PPC_KUAP
+	default y
+	help
+	  Allow the user to disable Kernel Userspace Access Protection (KUAP)
+	  at boot time using 'nosmap' kernel parameter.
+
+	  If you're unsure, say Y.
+
 config PPC_KUAP_DEBUG
 	bool "Extra debugging for Kernel Userspace Access Protection"
 	depends on PPC_KUAP
