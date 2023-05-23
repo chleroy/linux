@@ -49,11 +49,9 @@ void setup_kuep(bool disabled);
 void setup_kuap(bool disabled);
 
 #ifndef kuap_is_disabled
-extern struct static_key_false disable_kuap_key;
-
 static __always_inline bool kuap_is_disabled(void)
 {
-	return static_branch_unlikely(&disable_kuap_key);
+	return false;
 }
 #endif
 #else
