@@ -23,25 +23,25 @@ static __always_inline bool kuep_is_disabled(void)
 #define KUAP_NONE	(~0UL)
 #define KUAP_ALL	(~1UL)
 
-static inline void kuap_lock_one(unsigned long addr)
+static __always_inline void kuap_lock_one(unsigned long addr)
 {
 	mtsr(mfsr(addr) | SR_KS, addr);
 	isync();	/* Context sync required after mtsr() */
 }
 
-static inline void kuap_unlock_one(unsigned long addr)
+static __always_inline void kuap_unlock_one(unsigned long addr)
 {
 	mtsr(mfsr(addr) & ~SR_KS, addr);
 	isync();	/* Context sync required after mtsr() */
 }
 
-static inline void kuap_lock_all(void)
+static __always_inline void kuap_lock_all(void)
 {
 	update_user_segments(mfsr(0) | SR_KS);
 	isync();	/* Context sync required after mtsr() */
 }
 
-static inline void kuap_unlock_all(void)
+static __always_inline void kuap_unlock_all(void)
 {
 	update_user_segments(mfsr(0) & ~SR_KS);
 	isync();	/* Context sync required after mtsr() */
@@ -50,7 +50,7 @@ static inline void kuap_unlock_all(void)
 void kuap_lock_all_ool(void);
 void kuap_unlock_all_ool(void);
 
-static inline void kuap_lock_addr(unsigned long addr, bool ool)
+static __always_inline void kuap_lock_addr(unsigned long addr, bool ool)
 {
 	if (likely(addr != KUAP_ALL))
 		kuap_lock_one(addr);
@@ -60,7 +60,7 @@ static inline void kuap_lock_addr(unsigned long addr, bool ool)
 		kuap_lock_all_ool();
 }
 
-static inline void kuap_unlock(unsigned long addr, bool ool)
+static __always_inline void kuap_unlock(unsigned long addr, bool ool)
 {
 	if (likely(addr != KUAP_ALL))
 		kuap_unlock_one(addr);
@@ -70,7 +70,7 @@ static inline void kuap_unlock(unsigned long addr, bool ool)
 		kuap_unlock_all_ool();
 }
 
-static inline void __kuap_save_and_lock(struct pt_regs *regs)
+static __always_inline void __kuap_save_and_lock(struct pt_regs *regs)
 {
 	unsigned long kuap = current->thread.kuap;
 
@@ -83,11 +83,11 @@ static inline void __kuap_save_and_lock(struct pt_regs *regs)
 }
 #define __kuap_save_and_lock __kuap_save_and_lock
 
-static inline void kuap_user_restore(struct pt_regs *regs)
+static __always_inline void kuap_user_restore(struct pt_regs *regs)
 {
 }
 
-static inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long kuap)
+static __always_inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long kuap)
 {
 	if (unlikely(kuap != KUAP_NONE)) {
 		current->thread.kuap = KUAP_NONE;
@@ -102,7 +102,7 @@ static inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long kua
 	kuap_unlock(regs->kuap, false);
 }
 
-static inline unsigned long __kuap_get_and_assert_locked(void)
+static __always_inline unsigned long __kuap_get_and_assert_locked(void)
 {
 	unsigned long kuap = current->thread.kuap;
 
@@ -137,7 +137,7 @@ static __always_inline void __prevent_user_access(unsigned long dir)
 	kuap_lock_addr(kuap, true);
 }
 
-static inline unsigned long __prevent_user_access_return(void)
+static __always_inline unsigned long __prevent_user_access_return(void)
 {
 	unsigned long flags = current->thread.kuap;
 
@@ -149,7 +149,7 @@ static inline unsigned long __prevent_user_access_return(void)
 	return flags;
 }
 
-static inline void __restore_user_access(unsigned long flags)
+static __always_inline void __restore_user_access(unsigned long flags)
 {
 	if (flags != KUAP_NONE) {
 		current->thread.kuap = flags;
@@ -157,7 +157,7 @@ static inline void __restore_user_access(unsigned long flags)
 	}
 }
 
-static inline bool
+static __always_inline bool
 __bad_kuap_fault(struct pt_regs *regs, unsigned long address, bool is_write)
 {
 	unsigned long kuap = regs->kuap;

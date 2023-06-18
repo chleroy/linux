@@ -213,14 +213,14 @@ extern u64 __ro_after_init default_iamr;
  * access restrictions. Because of this ignore AMR value when accessing
  * userspace via kernel thread.
  */
-static inline u64 current_thread_amr(void)
+static __always_inline u64 current_thread_amr(void)
 {
 	if (current->thread.regs)
 		return current->thread.regs->amr;
 	return default_amr;
 }
 
-static inline u64 current_thread_iamr(void)
+static __always_inline u64 current_thread_iamr(void)
 {
 	if (current->thread.regs)
 		return current->thread.regs->iamr;
@@ -236,7 +236,7 @@ static __always_inline bool kuap_is_disabled(void)
 }
 #define kuap_is_disabled kuap_is_disabled
 
-static inline void kuap_user_restore(struct pt_regs *regs)
+static __always_inline void kuap_user_restore(struct pt_regs *regs)
 {
 	bool restore_amr = false, restore_iamr = false;
 	unsigned long amr, iamr;
@@ -275,7 +275,7 @@ static inline void kuap_user_restore(struct pt_regs *regs)
 	 */
 }
 
-static inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long amr)
+static __always_inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long amr)
 {
 	if (likely(regs->amr == amr))
 		return;
@@ -291,7 +291,7 @@ static inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long amr
 	 */
 }
 
-static inline unsigned long __kuap_get_and_assert_locked(void)
+static __always_inline unsigned long __kuap_get_and_assert_locked(void)
 {
 	unsigned long amr = mfspr(SPRN_AMR);
 
@@ -308,7 +308,7 @@ static inline unsigned long __kuap_get_and_assert_locked(void)
  * because that would require an expensive read/modify write of the AMR.
  */
 
-static inline unsigned long get_kuap(void)
+static __always_inline unsigned long get_kuap(void)
 {
 	/*
 	 * We return AMR_KUAP_BLOCKED when we don't support KUAP because
@@ -338,7 +338,8 @@ static __always_inline void set_kuap(unsigned long value)
 	isync();
 }
 
-static inline bool __bad_kuap_fault(struct pt_regs *regs, unsigned long address, bool is_write)
+static __always_inline bool
+__bad_kuap_fault(struct pt_regs *regs, unsigned long address, bool is_write)
 {
 	/*
 	 * For radix this will be a storage protection fault (DSISR_PROTFAULT).
@@ -381,12 +382,12 @@ static __always_inline void allow_user_access(void __user *to, const void __user
 
 #else /* CONFIG_PPC_KUAP */
 
-static inline unsigned long get_kuap(void)
+static __always_inline unsigned long get_kuap(void)
 {
 	return AMR_KUAP_BLOCKED;
 }
 
-static inline void set_kuap(unsigned long value) { }
+static __always_inline void set_kuap(unsigned long value) { }
 
 static __always_inline void allow_user_access(void __user *to, const void __user *from,
 					      unsigned long size, unsigned long dir)
@@ -401,7 +402,7 @@ static __always_inline void prevent_user_access(unsigned long dir)
 		do_uaccess_flush();
 }
 
-static inline unsigned long prevent_user_access_return(void)
+static __always_inline unsigned long prevent_user_access_return(void)
 {
 	unsigned long flags = get_kuap();
 
@@ -412,7 +413,7 @@ static inline unsigned long prevent_user_access_return(void)
 	return flags;
 }
 
-static inline void restore_user_access(unsigned long flags)
+static __always_inline void restore_user_access(unsigned long flags)
 {
 	set_kuap(flags);
 	if (static_branch_unlikely(&uaccess_flush_key) && flags == AMR_KUAP_BLOCKED)

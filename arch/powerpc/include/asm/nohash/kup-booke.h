@@ -18,14 +18,14 @@
 
 #include <asm/reg.h>
 
-static inline void __kuap_lock(void)
+static __always_inline void __kuap_lock(void)
 {
 	mtspr(SPRN_PID, 0);
 	isync();
 }
 #define __kuap_lock __kuap_lock
 
-static inline void __kuap_save_and_lock(struct pt_regs *regs)
+static __always_inline void __kuap_save_and_lock(struct pt_regs *regs)
 {
 	regs->kuap = mfspr(SPRN_PID);
 	mtspr(SPRN_PID, 0);
@@ -33,7 +33,7 @@ static inline void __kuap_save_and_lock(struct pt_regs *regs)
 }
 #define __kuap_save_and_lock __kuap_save_and_lock
 
-static inline void kuap_user_restore(struct pt_regs *regs)
+static __always_inline void kuap_user_restore(struct pt_regs *regs)
 {
 	if (kuap_is_disabled())
 		return;
@@ -43,7 +43,7 @@ static inline void kuap_user_restore(struct pt_regs *regs)
 	/* Context synchronisation is performed by rfi */
 }
 
-static inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long kuap)
+static __always_inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long kuap)
 {
 	if (regs->kuap)
 		mtspr(SPRN_PID, current->thread.pid);
@@ -52,7 +52,7 @@ static inline void __kuap_kernel_restore(struct pt_regs *regs, unsigned long kua
 }
 
 #ifdef CONFIG_PPC_KUAP_DEBUG
-static inline unsigned long __kuap_get_and_assert_locked(void)
+static __always_inline unsigned long __kuap_get_and_assert_locked(void)
 {
 	WARN_ON_ONCE(mfspr(SPRN_PID));
 
@@ -61,20 +61,20 @@ static inline unsigned long __kuap_get_and_assert_locked(void)
 #define __kuap_get_and_assert_locked __kuap_get_and_assert_locked
 #endif
 
-static inline void __allow_user_access(void __user *to, const void __user *from,
-				       unsigned long size, unsigned long dir)
+static __always_inline void __allow_user_access(void __user *to, const void __user *from,
+						unsigned long size, unsigned long dir)
 {
 	mtspr(SPRN_PID, current->thread.pid);
 	isync();
 }
 
-static inline void __prevent_user_access(unsigned long dir)
+static __always_inline void __prevent_user_access(unsigned long dir)
 {
 	mtspr(SPRN_PID, 0);
 	isync();
 }
 
-static inline unsigned long __prevent_user_access_return(void)
+static __always_inline unsigned long __prevent_user_access_return(void)
 {
 	unsigned long flags = mfspr(SPRN_PID);
 
@@ -84,7 +84,7 @@ static inline unsigned long __prevent_user_access_return(void)
 	return flags;
 }
 
-static inline void __restore_user_access(unsigned long flags)
+static __always_inline void __restore_user_access(unsigned long flags)
 {
 	if (flags) {
 		mtspr(SPRN_PID, current->thread.pid);
@@ -92,7 +92,7 @@ static inline void __restore_user_access(unsigned long flags)
 	}
 }
 
-static inline bool
+static __always_inline bool
 __bad_kuap_fault(struct pt_regs *regs, unsigned long address, bool is_write)
 {
 	return !regs->kuap;
