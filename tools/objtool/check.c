@@ -219,7 +219,7 @@ static bool __dead_end_function(struct objtool_file *file, struct symbol *func,
 	func_for_each_insn(file, func, insn) {
 		empty = false;
 
-		if (insn->type == INSN_RETURN)
+		if (insn->type == INSN_RETURN || insn->type == INSN_RETURN_CONDITIONAL)
 			return false;
 	}
 
