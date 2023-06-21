@@ -2130,13 +2130,6 @@ static struct reloc *find_jump_table(struct objtool_file *file,
 		if (insn != orig_insn && insn->type == INSN_JUMP_DYNAMIC)
 			break;
 
-		/* allow small jumps within the range */
-		if (insn->type == INSN_JUMP_UNCONDITIONAL &&
-		    insn->jump_dest &&
-		    (insn->jump_dest->offset <= insn->offset ||
-		     insn->jump_dest->offset > orig_insn->offset))
-		    break;
-
 		table_reloc = arch_find_switch_table(file, insn, is_rel);
 		if (!table_reloc)
 			continue;
