@@ -35,7 +35,6 @@ struct opts {
 	bool mnop;
 	bool module;
 	bool no_unreachable;
-	bool sec_address;
 	bool stats;
 };
 

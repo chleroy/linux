@@ -21,7 +21,6 @@ static inline char *offstr(struct section *sec, unsigned long offset)
 	bool is_text = (sec->sh.sh_flags & SHF_EXECINSTR);
 	struct symbol *sym = NULL;
 	char *str;
-	int len;
 
 	if (is_text)
 		sym = find_func_containing(sec, offset);
@@ -30,9 +29,8 @@ static inline char *offstr(struct section *sec, unsigned long offset)
 
 	if (sym) {
 		str = malloc(strlen(sym->name) + strlen(sec->name) + 40);
-		len = sprintf(str, "%s+0x%lx", sym->name, offset - sym->offset);
-		if (opts.sec_address)
-			sprintf(str+len, " (%s+0x%lx)", sec->name, offset);
+		sprintf(str, "%s+0x%lx (%s+0x%lx)", sym->name,
+			offset - sym->offset, sec->name, offset);
 	} else {
 		str = malloc(strlen(sec->name) + 20);
 		sprintf(str, "%s+0x%lx", sec->name, offset);
