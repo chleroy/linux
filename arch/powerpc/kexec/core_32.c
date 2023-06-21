@@ -17,7 +17,7 @@
 typedef void (*relocate_new_kernel_t)(
 				unsigned long indirection_page,
 				unsigned long reboot_code_buffer,
-				unsigned long start_address) __noreturn;
+				unsigned long start_address);
 
 /*
  * This is a generic machine_kexec function suitable at least for
@@ -61,6 +61,8 @@ void default_machine_kexec(struct kimage *image)
 	/* now call it */
 	rnk = (relocate_new_kernel_t) reboot_code_buffer;
 	(*rnk)(page_list, reboot_code_buffer_phys, image->start);
+
+	unreachable();	/* For objtool */
 }
 
 int machine_kexec_prepare(struct kimage *image)

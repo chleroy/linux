@@ -10,6 +10,8 @@
 #include <linux/types.h>
 
 static __always_inline bool kuap_is_disabled(void);
+static __always_inline void mtspr_uaccess_begin(int rn, unsigned long val);
+static __always_inline void mtspr_uaccess_end(int rn, unsigned long val);
 #endif
 
 #ifdef CONFIG_PPC_BOOK3S_64
@@ -220,6 +222,16 @@ static __always_inline void prevent_current_read_from_user(void)
 static __always_inline void prevent_current_write_to_user(void)
 {
 	prevent_user_access(KUAP_WRITE);
+}
+
+static __always_inline void mtspr_uaccess_begin(int rn, unsigned long val)
+{
+	asm(ASM_UACCESS_BEGIN "mtspr %0, %1\n\t" : : "i"(rn), "r"(val) : "memory");
+}
+
+static __always_inline void mtspr_uaccess_end(int rn, unsigned long val)
+{
+	asm(ASM_UACCESS_END "mtspr %0, %1\n\t" : : "i"(rn), "r"(val) : "memory");
 }
 
 #endif /* !__ASSEMBLY__ */

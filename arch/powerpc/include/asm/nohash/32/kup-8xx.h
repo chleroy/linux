@@ -42,12 +42,12 @@ static __always_inline unsigned long __kuap_get_and_assert_locked(void)
 static __always_inline void __allow_user_access(void __user *to, const void __user *from,
 						unsigned long size, unsigned long dir)
 {
-	mtspr(SPRN_MD_AP, MD_APG_INIT);
+	mtspr_uaccess_begin(SPRN_MD_AP, MD_APG_INIT);
 }
 
 static __always_inline void __prevent_user_access(unsigned long dir)
 {
-	mtspr(SPRN_MD_AP, MD_APG_KUAP);
+	mtspr_uaccess_end(SPRN_MD_AP, MD_APG_KUAP);
 }
 
 static __always_inline unsigned long __prevent_user_access_return(void)
@@ -56,14 +56,14 @@ static __always_inline unsigned long __prevent_user_access_return(void)
 
 	flags = mfspr(SPRN_MD_AP);
 
-	mtspr(SPRN_MD_AP, MD_APG_KUAP);
+	mtspr_uaccess_end(SPRN_MD_AP, MD_APG_KUAP);
 
 	return flags;
 }
 
 static __always_inline void __restore_user_access(unsigned long flags)
 {
-	mtspr(SPRN_MD_AP, flags);
+	mtspr_uaccess_begin(SPRN_MD_AP, flags);
 }
 
 static __always_inline bool
