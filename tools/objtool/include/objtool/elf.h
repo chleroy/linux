@@ -80,6 +80,7 @@ struct reloc {
 	s64 addend;
 	int idx;
 	bool jump_table_start;
+	bool jump_table_is_rel;
 };
 
 #define ELF_HASH_BITS	20
