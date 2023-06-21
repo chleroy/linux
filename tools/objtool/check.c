@@ -1052,6 +1052,38 @@ static void add_ignores(struct objtool_file *file)
 	}
 }
 
+static void __add_uaccess(struct objtool_file *file, const char *name,
+			  int type, const char *action)
+{
+	struct section *rsec;
+	struct reloc *reloc;
+	struct instruction *insn;
+
+	rsec = find_section_by_name(file->elf, name);
+	if (!rsec)
+		return;
+
+	for_each_reloc(rsec, reloc) {
+		if (reloc->sym->type != STT_SECTION) {
+			WARN("unexpected relocation symbol type in %s: ", rsec->name);
+			continue;
+		}
+		insn = find_insn(file, reloc->sym->sec, reloc_addend(reloc));
+		if (!insn) {
+			WARN("can't find UACCESS %s insn at %s+0x%" PRIx64,
+			     action, reloc->sym->sec->name, reloc_addend(reloc));
+			continue;
+		}
+		insn->type = type;
+	}
+}
+
+static void add_uaccess(struct objtool_file *file)
+{
+	__add_uaccess(file, ".rela.discard.uaccess_begin", INSN_STAC, "enable");
+	__add_uaccess(file, ".rela.discard.uaccess_end", INSN_CLAC, "disable");
+}
+
 /*
  * This is a whitelist of functions that is allowed to be called with AC set.
  * The list is meant to be minimal and only contains compiler instrumentation
@@ -2597,6 +2629,7 @@ static int decode_sections(struct objtool_file *file)
 		return ret;
 
 	add_ignores(file);
+	add_uaccess(file);
 	add_uaccess_safe(file);
 
 	ret = add_ignore_alternatives(file);
