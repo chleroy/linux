@@ -1988,7 +1988,7 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
 	struct symbol *pfunc = insn_func(insn)->pfunc;
 	struct reloc *table = insn_jump_table(insn);
 	struct instruction *dest_insn;
-	unsigned int prev_offset = 0;
+	unsigned int offset, prev_offset = 0;
 	struct reloc *reloc = table;
 	struct alternative *alt;
 
@@ -2003,7 +2003,7 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
 			break;
 
 		/* Make sure the table entries are consecutive: */
-		if (prev_offset && reloc_offset(reloc) != prev_offset + 8)
+		if (prev_offset && reloc_offset(reloc) != prev_offset + elf_addr_size(file->elf))
 			break;
 
 		/* Detect function pointers from contiguous objects: */
@@ -2011,7 +2011,12 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
 		    reloc_addend(reloc) == pfunc->offset)
 			break;
 
-		dest_insn = find_insn(file, reloc->sym->sec, reloc_addend(reloc));
+		if (reloc_type(reloc) == R_ABS32 || reloc_type(reloc) == R_ABS64)
+			offset = reloc_addend(reloc);
+		else
+			offset = reloc_addend(reloc) + reloc_offset(table) - reloc_offset(reloc);
+
+		dest_insn = find_insn(file, reloc->sym->sec, offset);
 		if (!dest_insn)
 			break;
 
