@@ -2053,7 +2053,7 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
 	struct instruction *dest_insn;
 	struct alternative *alt;
 	struct symbol *pfunc = insn_func(insn)->pfunc;
-	unsigned int prev_offset = 0;
+	unsigned int offset, prev_offset = 0;
 
 	/*
 	 * Each @reloc is a switch table relocation which points to the target
@@ -2066,7 +2066,7 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
 			break;
 
 		/* Make sure the table entries are consecutive: */
-		if (prev_offset && reloc->offset != prev_offset + 8)
+		if (prev_offset && reloc->offset != prev_offset + elf_class_addrsize(file->elf))
 			break;
 
 		/* Detect function pointers from contiguous objects: */
@@ -2074,7 +2074,12 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
 		    reloc->addend == pfunc->offset)
 			break;
 
-		dest_insn = find_insn(file, reloc->sym->sec, reloc->addend);
+		if (table->jump_table_is_rel)
+			offset = reloc->addend + table->offset - reloc->offset;
+		else
+			offset = reloc->addend;
+
+		dest_insn = find_insn(file, reloc->sym->sec, offset);
 		if (!dest_insn)
 			break;
 
@@ -2107,8 +2112,8 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
  * associated with it.
  */
 static struct reloc *find_jump_table(struct objtool_file *file,
-				      struct symbol *func,
-				      struct instruction *insn)
+				     struct symbol *func,
+				     struct instruction *insn, bool *is_rel)
 {
 	struct reloc *table_reloc;
 	struct instruction *dest_insn, *orig_insn = insn;
@@ -2132,7 +2137,7 @@ static struct reloc *find_jump_table(struct objtool_file *file,
 		     insn->jump_dest->offset > orig_insn->offset))
 		    break;
 
-		table_reloc = arch_find_switch_table(file, insn);
+		table_reloc = arch_find_switch_table(file, insn, is_rel);
 		if (!table_reloc)
 			continue;
 		dest_insn = find_insn(file, table_reloc->sym->sec, table_reloc->addend);
@@ -2154,6 +2159,7 @@ static void mark_func_jump_tables(struct objtool_file *file,
 {
 	struct instruction *insn, *last = NULL;
 	struct reloc *reloc;
+	bool is_rel;
 
 	func_for_each_insn(file, func, insn) {
 		if (!last)
@@ -2176,9 +2182,10 @@ static void mark_func_jump_tables(struct objtool_file *file,
 		if (insn->type != INSN_JUMP_DYNAMIC)
 			continue;
 
-		reloc = find_jump_table(file, func, insn);
+		reloc = find_jump_table(file, func, insn, &is_rel);
 		if (reloc) {
 			reloc->jump_table_start = true;
+			reloc->jump_table_is_rel = is_rel;
 			insn->_jump_table = reloc;
 		}
 	}
