@@ -64,13 +64,13 @@ static __always_inline unsigned long __kuap_get_and_assert_locked(void)
 static __always_inline void __allow_user_access(void __user *to, const void __user *from,
 						unsigned long size, unsigned long dir)
 {
-	mtspr(SPRN_PID, current->thread.pid);
+	mtspr_uaccess_begin(SPRN_PID, current->thread.pid);
 	isync();
 }
 
 static __always_inline void __prevent_user_access(unsigned long dir)
 {
-	mtspr(SPRN_PID, 0);
+	mtspr_uaccess_end(SPRN_PID, 0);
 	isync();
 }
 
@@ -78,7 +78,7 @@ static __always_inline unsigned long __prevent_user_access_return(void)
 {
 	unsigned long flags = mfspr(SPRN_PID);
 
-	mtspr(SPRN_PID, 0);
+	mtspr_uaccess_end(SPRN_PID, 0);
 	isync();
 
 	return flags;
@@ -87,7 +87,7 @@ static __always_inline unsigned long __prevent_user_access_return(void)
 static __always_inline void __restore_user_access(unsigned long flags)
 {
 	if (flags) {
-		mtspr(SPRN_PID, current->thread.pid);
+		mtspr_uaccess_begin(SPRN_PID, current->thread.pid);
 		isync();
 	}
 }

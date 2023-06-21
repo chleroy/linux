@@ -236,6 +236,7 @@ static bool __dead_end_function(struct objtool_file *file, struct symbol *func,
 		"x86_64_start_reservations",
 		"xen_cpu_bringup_again",
 		"xen_start_kernel",
+		"longjmp",
 	};
 
 	if (!func)
@@ -1335,6 +1336,8 @@ static const char *uaccess_safe_builtin[] = {
 	"rep_stos_alternative",
 	"rep_movs_alternative",
 	"__copy_user_nocache",
+	"__copy_tofrom_user",
+	"__arch_clear_user",
 	NULL
 };
 
