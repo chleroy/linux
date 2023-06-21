@@ -24,6 +24,8 @@ void setup_kuap(bool disabled)
 
 	pr_info("Activating Kernel Userspace Access Protection\n");
 
+	/* Performed a paired allow/prevent to silence objtool warning */
+	allow_user_access(NULL, NULL, 0, KUAP_READ_WRITE);
 	prevent_user_access(KUAP_READ_WRITE);
 }
 #endif

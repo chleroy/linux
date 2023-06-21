@@ -39,13 +39,13 @@ static __always_inline unsigned long __kuap_get_and_assert_locked(void)
 
 static __always_inline void uaccess_begin_8xx(unsigned long val)
 {
-	asm(ASM_MMU_FTR_IFSET("mtspr %0, %1", "", %2) : :
+	asm(ASM_UACCESS_BEGIN ASM_MMU_FTR_IFSET("mtspr %0, %1", "", %2) : :
 	    "i"(SPRN_MD_AP), "r"(val), "i"(MMU_FTR_KUAP) : "memory");
 }
 
 static __always_inline void uaccess_end_8xx(void)
 {
-	asm(ASM_MMU_FTR_IFSET("mtspr %0, %1", "", %2) : :
+	asm(ASM_UACCESS_END ASM_MMU_FTR_IFSET("mtspr %0, %1", "", %2) : :
 	    "i"(SPRN_MD_AP), "r"(MD_APG_KUAP), "i"(MMU_FTR_KUAP) : "memory");
 }
 

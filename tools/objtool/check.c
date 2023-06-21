@@ -1259,13 +1259,17 @@ static const char *uaccess_safe_builtin[] = {
 	"stackleak_track_stack",
 	/* misc */
 	"csum_partial_copy_generic",
+	"ftrace_likely_update", /* CONFIG_TRACE_BRANCH_PROFILING */
+	/* misc x86 */
 	"copy_mc_fragile",
 	"copy_mc_fragile_handle_tail",
 	"copy_mc_enhanced_fast_string",
-	"ftrace_likely_update", /* CONFIG_TRACE_BRANCH_PROFILING */
 	"rep_stos_alternative",
 	"rep_movs_alternative",
 	"__copy_user_nocache",
+	/* misc powerpc */
+	"__copy_tofrom_user",
+	"__arch_clear_user",
 	NULL
 };
 
