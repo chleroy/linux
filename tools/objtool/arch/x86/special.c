@@ -118,11 +118,6 @@ struct reloc *arch_find_switch_table(struct objtool_file *file,
 	    strcmp(table_sec->name, C_JUMP_TABLE_SECTION))
 		return NULL;
 
-	/*
-	 * Each table entry has a rela associated with it.  The rela
-	 * should reference text in the same function as the original
-	 * instruction.
-	 */
 	rodata_reloc = find_reloc_by_dest(file->elf, table_sec, table_offset);
 	if (!rodata_reloc)
 		return NULL;
