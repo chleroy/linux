@@ -80,8 +80,8 @@ static struct instruction *next_insn_same_func(struct objtool_file *file,
 	return find_insn(file, func->cfunc->sec, func->cfunc->offset);
 }
 
-static struct instruction *prev_insn_same_sec(struct objtool_file *file,
-					      struct instruction *insn)
+struct instruction *prev_insn_same_sec(struct objtool_file *file,
+				       struct instruction *insn)
 {
 	if (insn->idx == 0) {
 		if (insn->prev_len)
@@ -2064,7 +2064,8 @@ static struct reloc *find_jump_table(struct objtool_file *file,
 	     insn && insn_func(insn) && insn_func(insn)->pfunc == func;
 	     insn = insn->first_jump_src ?: prev_insn_same_sym(file, insn)) {
 
-		if (insn != orig_insn && insn->type == INSN_JUMP_DYNAMIC)
+		if (insn != orig_insn && insn->type == INSN_JUMP_DYNAMIC &&
+		    insn->gpr == orig_insn->gpr)
 			break;
 
 		/* allow small jumps within the range */
@@ -2074,7 +2075,7 @@ static struct reloc *find_jump_table(struct objtool_file *file,
 		     insn->jump_dest->offset > orig_insn->offset))
 		    break;
 
-		table_reloc = arch_find_switch_table(file, insn);
+		table_reloc = arch_find_switch_table(file, insn, orig_insn);
 		if (!table_reloc)
 			continue;
 

@@ -86,7 +86,8 @@ bool arch_support_alt_relocation(struct special_alt *special_alt,
  *    NOTE: RETPOLINE made it harder still to decode dynamic jumps.
  */
 struct reloc *arch_find_switch_table(struct objtool_file *file,
-				    struct instruction *insn)
+				     struct instruction *insn,
+				     struct instruction *orig_insn)
 {
 	struct reloc  *text_reloc, *rodata_reloc;
 	struct section *table_sec;
