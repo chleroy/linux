@@ -2034,6 +2034,8 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
 		alt->next = insn->alts;
 		insn->alts = alt;
 		prev_offset = reloc_offset(reloc);
+		if (!dest_insn->first_jump_src)
+			dest_insn->first_jump_src = insn;
 	}
 
 	if (!prev_offset) {
@@ -2066,6 +2068,9 @@ static struct reloc *find_jump_table(struct objtool_file *file,
 
 		if (insn != orig_insn && insn->type == INSN_JUMP_DYNAMIC &&
 		    insn->gpr == orig_insn->gpr)
+			break;
+
+		if (insn->type == INSN_RETURN)
 			break;
 
 		/* allow small jumps within the range */
@@ -2130,8 +2135,7 @@ static int mark_add_func_jump_tables(struct objtool_file *file,
 		 * that find_jump_table() can back-track using those and
 		 * avoid some potentially confusing code.
 		 */
-		if (insn->type == INSN_JUMP_UNCONDITIONAL && insn->jump_dest &&
-		    insn->offset > last->offset &&
+		if (is_static_jump(insn) && insn->jump_dest &&
 		    insn->jump_dest->offset > insn->offset &&
 		    !insn->jump_dest->first_jump_src) {
 
