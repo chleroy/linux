@@ -2094,14 +2094,30 @@ static struct reloc *find_jump_table(struct objtool_file *file,
 	return NULL;
 }
 
+static struct reloc *find_next_table(struct instruction *insn,
+				     struct reloc **table, unsigned int size)
+{
+	unsigned long offset = reloc_offset(insn_jump_table(insn));
+	int i;
+	struct reloc *reloc = NULL;
+
+	for (i = 0; i < size; i++) {
+		if (reloc_offset(table[i]) > offset &&
+		    (!reloc || reloc_offset(table[i]) < reloc_offset(reloc)))
+			reloc = table[i];
+	}
+	return reloc;
+}
+
 /*
  * First pass: Mark the head of each jump table so that in the next pass,
  * we know when a given jump table ends and the next one starts.
  */
 static int mark_add_func_jump_tables(struct objtool_file *file,
-				     struct symbol *func)
+				     struct symbol *func,
+				     struct reloc **table, unsigned int size)
 {
-	struct instruction *insn, *last = NULL, *insn_t1 = NULL, *insn_t2;
+	struct instruction *insn, *last = NULL;
 	struct reloc *reloc;
 	int ret = 0;
 
@@ -2132,22 +2148,10 @@ static int mark_add_func_jump_tables(struct objtool_file *file,
 		else
 			continue;
 
-		if (!insn_t1) {
-			insn_t1 = insn;
-			continue;
-		}
-
-		insn_t2 = insn;
-
-		ret = add_jump_table(file, insn_t1, insn_jump_table(insn_t2));
+		ret = add_jump_table(file, insn, find_next_table(insn, table, size));
 		if (ret)
 			return ret;
-
-		insn_t1 = insn_t2;
 	}
-
-	if (insn_t1)
-		ret = add_jump_table(file, insn_t1, NULL);
 
 	return ret;
 }
@@ -2161,15 +2165,41 @@ static int add_jump_table_alts(struct objtool_file *file)
 {
 	struct symbol *func;
 	int ret;
+	struct instruction *insn;
+	unsigned int size = 0, i = 0;
+	struct reloc **table = NULL;
 
 	if (!file->rodata)
 		return 0;
+
+	for_each_insn(file, insn) {
+		struct instruction *dest_insn;
+		struct reloc *reloc;
+
+		func = insn_func(insn) ? insn_func(insn)->pfunc : NULL;
+		reloc = arch_find_switch_table(file, insn, NULL);
+		/*
+		 * Each table entry has a rela associated with it.  The rela
+		 * should reference text in the same function as the original
+		 * instruction.
+		 */
+		if (!reloc)
+			continue;
+		dest_insn = find_insn(file, reloc->sym->sec, reloc_addend(reloc));
+		if (!dest_insn || !insn_func(dest_insn) || insn_func(dest_insn)->pfunc != func)
+			continue;
+		if (i == size) {
+			size += 1024;
+			table = realloc(table, size * sizeof(*table));
+		}
+		table[i++] = reloc;
+	}
 
 	for_each_sym(file, func) {
 		if (func->type != STT_FUNC)
 			continue;
 
-		ret = mark_add_func_jump_tables(file, func);
+		ret = mark_add_func_jump_tables(file, func, table, i);
 		if (ret)
 			return ret;
 	}
