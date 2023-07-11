@@ -2097,11 +2097,12 @@ static struct reloc *find_jump_table(struct objtool_file *file,
  * First pass: Mark the head of each jump table so that in the next pass,
  * we know when a given jump table ends and the next one starts.
  */
-static void mark_func_jump_tables(struct objtool_file *file,
-				    struct symbol *func)
+static int mark_add_func_jump_tables(struct objtool_file *file,
+				     struct symbol *func)
 {
-	struct instruction *insn, *last = NULL;
+	struct instruction *insn, *last = NULL, *insn_t1 = NULL, *insn_t2;
 	struct reloc *reloc;
+	int ret = 0;
 
 	func_for_each_insn(file, func, insn) {
 		if (!last)
@@ -2127,17 +2128,7 @@ static void mark_func_jump_tables(struct objtool_file *file,
 		reloc = find_jump_table(file, func, insn);
 		if (reloc)
 			insn->_jump_table = reloc;
-	}
-}
-
-static int add_func_jump_tables(struct objtool_file *file,
-				  struct symbol *func)
-{
-	struct instruction *insn, *insn_t1 = NULL, *insn_t2;
-	int ret = 0;
-
-	func_for_each_insn(file, func, insn) {
-		if (!insn_jump_table(insn))
+		else
 			continue;
 
 		if (!insn_t1) {
@@ -2177,8 +2168,7 @@ static int add_jump_table_alts(struct objtool_file *file)
 		if (func->type != STT_FUNC)
 			continue;
 
-		mark_func_jump_tables(file, func);
-		ret = add_func_jump_tables(file, func);
+		ret = mark_add_func_jump_tables(file, func);
 		if (ret)
 			return ret;
 	}
