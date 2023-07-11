@@ -2565,7 +2565,8 @@ static void mark_rodata(struct objtool_file *file)
 	 */
 	for_each_sec(file, sec) {
 		if (!strncmp(sec->name, ".rodata", 7) &&
-		    !strstr(sec->name, ".str1.")) {
+		    !strstr(sec->name, ".str1.") &&
+		    !strstr(sec->name, ".cst")) {
 			sec->rodata = true;
 			found = true;
 		}
