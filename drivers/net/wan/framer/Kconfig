@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# FRAMER
+#
+
+menu "Framer Subsystem"
+
+config GENERIC_FRAMER
+	bool "Framer Core"
+	help
+	  Generic Framer support.
+
+	  This framework is designed to provide a generic interface for framer
+	  devices present in the kernel. This layer will have the generic
+	  API by which framer drivers can create framer using the framer
+	  framework and framer users can obtain reference to the framer.
+	  All the users of this framework should select this config.
+
+endmenu
