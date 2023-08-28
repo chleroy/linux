@@ -20,6 +20,27 @@ struct mm_struct;
 #include <asm/nohash/pgtable.h>
 #endif /* !CONFIG_PPC_BOOK3S */
 
+#ifndef PAGE_NONE
+#ifndef _PAGE_NA
+#define _PAGE_NA	0
+#define _PAGE_RO	_PAGE_READ
+#define _PAGE_ROX	(_PAGE_READ | _PAGE_EXEC)
+#define _PAGE_RW	(_PAGE_READ | _PAGE_WRITE)
+#define _PAGE_RWX	(_PAGE_READ | _PAGE_WRITE | _PAGE_EXEC)
+#endif
+#endif
+
+/* Permission masks used to generate the __P and __S table */
+#ifndef PAGE_NONE
+#define PAGE_NONE	__pgprot(_PAGE_BASE | _PAGE_NA)
+#define PAGE_SHARED	__pgprot(_PAGE_BASE | _PAGE_RW)
+#define PAGE_SHARED_X	__pgprot(_PAGE_BASE | _PAGE_RWX)
+#define PAGE_COPY	__pgprot(_PAGE_BASE | _PAGE_RO)
+#define PAGE_COPY_X	__pgprot(_PAGE_BASE | _PAGE_ROX)
+#define PAGE_READONLY	__pgprot(_PAGE_BASE | _PAGE_RO)
+#define PAGE_READONLY_X	__pgprot(_PAGE_BASE | _PAGE_ROX)
+#endif
+
 /*
  * Protection used for kernel text. We want the debuggers to be able to
  * set breakpoints anywhere, so don't write protect the kernel text
