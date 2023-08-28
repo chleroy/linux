@@ -30,6 +30,14 @@ struct mm_struct;
 #endif
 #endif
 
+/* Permission flags for kernel mappings */
+#ifndef _PAGE_KERNEL_RO
+#define _PAGE_KERNEL_RO		_PAGE_RO
+#define _PAGE_KERNEL_ROX	_PAGE_ROX
+#define _PAGE_KERNEL_RW		(_PAGE_RW | _PAGE_DIRTY)
+#define _PAGE_KERNEL_RWX	(_PAGE_RWX | _PAGE_DIRTY)
+#endif
+
 /* Permission masks used to generate the __P and __S table */
 #ifndef PAGE_NONE
 #define PAGE_NONE	__pgprot(_PAGE_BASE | _PAGE_NA)
