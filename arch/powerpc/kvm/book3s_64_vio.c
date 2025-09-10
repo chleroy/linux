@@ -10,7 +10,6 @@
 #include <linux/string.h>
 #include <linux/kvm.h>
 #include <linux/kvm_host.h>
-#include <linux/highmem.h>
 #include <linux/gfp.h>
 #include <linux/slab.h>
 #include <linux/sched/signal.h>

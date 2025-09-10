@@ -24,7 +24,6 @@
 #include <linux/mman.h>
 #include <linux/mm.h>
 #include <linux/interrupt.h>
-#include <linux/highmem.h>
 #include <linux/extable.h>
 #include <linux/kprobes.h>
 #include <linux/kdebug.h>

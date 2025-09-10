@@ -29,7 +29,6 @@
 #include <linux/vmalloc.h>
 #include <linux/init.h>
 #include <linux/delay.h>
-#include <linux/highmem.h>
 #include <linux/idr.h>
 #include <linux/nodemask.h>
 #include <linux/module.h>

@@ -36,7 +36,6 @@
 #include <linux/gfp.h>
 #include <linux/sched.h>
 #include <linux/vmalloc.h>
-#include <linux/highmem.h>
 #include <linux/module.h>
 #include <linux/miscdevice.h>
 #include <asm/asm-prototypes.h>

@@ -233,7 +233,7 @@ static int p10_aes_gcm_crypt(struct aead_request *req, u8 *riv,
 
 	/* Linearize assoc, if not already linear */
 	if (req->src->length >= assoclen && req->src->length) {
-		assoc = sg_virt(req->src); /* ppc64 is !HIGHMEM */
+		assoc = sg_virt(req->src);
 	} else {
 		gfp_t flags = (req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP) ?
 			      GFP_KERNEL : GFP_ATOMIC;

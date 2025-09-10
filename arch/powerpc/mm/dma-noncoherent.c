@@ -9,7 +9,7 @@
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/types.h>
-#include <linux/highmem.h>
+#include <linux/cacheflush.h>
 #include <linux/dma-direct.h>
 #include <linux/dma-map-ops.h>
 
@@ -46,47 +46,6 @@ static void __dma_sync(void *vaddr, size_t size, int direction)
 	}
 }
 
-#ifdef CONFIG_HIGHMEM
-/*
- * __dma_sync_page() implementation for systems using highmem.
- * In this case, each page of a buffer must be kmapped/kunmapped
- * in order to have a virtual address for __dma_sync(). This must
- * not sleep so kmap_atomic()/kunmap_atomic() are used.
- *
- * Note: yes, it is possible and correct to have a buffer extend
- * beyond the first page.
- */
-static inline void __dma_sync_page_highmem(struct page *page,
-		unsigned long offset, size_t size, int direction)
-{
-	size_t seg_size = min((size_t)(PAGE_SIZE - offset), size);
-	size_t cur_size = seg_size;
-	unsigned long flags, start, seg_offset = offset;
-	int nr_segs = 1 + ((size - seg_size) + PAGE_SIZE - 1)/PAGE_SIZE;
-	int seg_nr = 0;
-
-	local_irq_save(flags);
-
-	do {
-		start = (unsigned long)kmap_atomic(page + seg_nr) + seg_offset;
-
-		/* Sync this buffer segment */
-		__dma_sync((void *)start, seg_size, direction);
-		kunmap_atomic((void *)start);
-		seg_nr++;
-
-		/* Calculate next buffer segment size */
-		seg_size = min((size_t)PAGE_SIZE, size - cur_size);
-
-		/* Add the segment size to our running total */
-		cur_size += seg_size;
-		seg_offset = 0;
-	} while (seg_nr < nr_segs);
-
-	local_irq_restore(flags);
-}
-#endif /* CONFIG_HIGHMEM */
-
 /*
  * __dma_sync_page makes memory consistent. identical to __dma_sync, but
  * takes a struct page instead of a virtual address
@@ -95,13 +54,8 @@ static void __dma_sync_page(phys_addr_t paddr, size_t size, int dir)
 {
 	struct page *page = pfn_to_page(paddr >> PAGE_SHIFT);
 	unsigned offset = paddr & ~PAGE_MASK;
-
-#ifdef CONFIG_HIGHMEM
-	__dma_sync_page_highmem(page, offset, size, dir);
-#else
 	unsigned long start = (unsigned long)page_address(page) + offset;
 	__dma_sync((void *)start, size, dir);
-#endif
 }
 
 void arch_sync_dma_for_device(phys_addr_t paddr, size_t size,

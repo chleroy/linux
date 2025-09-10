@@ -13,7 +13,6 @@
 #include <linux/delay.h>
 #include <linux/of.h>
 #include <linux/kexec.h>
-#include <linux/highmem.h>
 #include <linux/cpu.h>
 #include <linux/fsl/guts.h>
 #include <linux/pgtable.h>
@@ -204,8 +203,8 @@ static int smp_85xx_start_cpu(int cpu)
 
 	/*
 	 * A secondary core could be in a spinloop in the bootpage
-	 * (0xfffff000), somewhere in highmem, or somewhere in lowmem.
-	 * The bootpage and highmem can be accessed via ioremap(), but
+	 * (0xfffff000), somewhere in lowmem.
+	 * The bootpage can be accessed via ioremap(), but
 	 * we need to directly access the spinloop if its in lowmem.
 	 */
 	ioremappable = *cpu_rel_addr > virt_to_phys(high_memory - 1);

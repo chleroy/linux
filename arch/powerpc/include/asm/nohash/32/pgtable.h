@@ -54,12 +54,6 @@
 #define pgd_ERROR(e) \
 	pr_err("%s:%d: bad pgd %08llx.\n", __FILE__, __LINE__, (unsigned long long)pgd_val(e))
 
-/*
- * This is the bottom of the PKMAP area with HIGHMEM or an arbitrary
- * value (for now) on others, from where we can start layout kernel
- * virtual space that goes below PKMAP and FIXMAP
- */
-
 #define FIXADDR_SIZE	0
 #ifdef CONFIG_KASAN
 #include <asm/kasan.h>
@@ -73,11 +67,7 @@
  * until mem_init() at which point this becomes the top of the vmalloc
  * and ioremap space
  */
-#ifdef CONFIG_HIGHMEM
-#define IOREMAP_TOP	PKMAP_BASE
-#else
 #define IOREMAP_TOP	FIXADDR_START
-#endif
 
 /* PPC32 shares vmalloc area with ioremap */
 #define IOREMAP_START	VMALLOC_START

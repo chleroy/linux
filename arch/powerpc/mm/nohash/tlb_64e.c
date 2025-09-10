@@ -263,8 +263,7 @@ static void __init early_mmu_set_memory_limit(void)
 	 * Limit memory so we dont have linear faults.
 	 * Unlike memblock_set_current_limit, which limits
 	 * memory available during early boot, this permanently
-	 * reduces the memory available to Linux.  We need to
-	 * do this because highmem is not supported on 64-bit.
+	 * reduces the memory available to Linux.
 	 */
 	memblock_enforce_memory_limit(linear_map_top);
 
@@ -290,8 +289,8 @@ void setup_initial_memory_limit(phys_addr_t first_memblock_base,
 	/*
 	 * On FSL Embedded 64-bit, usually all RAM is bolted, but with
 	 * unusual memory sizes it's possible for some RAM to not be mapped
-	 * (such RAM is not used at all by Linux, since we don't support
-	 * highmem on 64-bit).  We limit ppc64_rma_size to what would be
+	 * (such RAM is not used at all by Linux.
+	 * We limit ppc64_rma_size to what would be
 	 * mappable if this memblock is the only one.  Additional memblocks
 	 * can only increase, not decrease, the amount that ends up getting
 	 * mapped.  We still limit max to 1G even if we'll eventually map

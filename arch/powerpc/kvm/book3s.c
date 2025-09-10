@@ -20,7 +20,6 @@
 #include <linux/gfp.h>
 #include <linux/sched.h>
 #include <linux/vmalloc.h>
-#include <linux/highmem.h>
 
 #include <asm/reg.h>
 #include <asm/cputable.h>

@@ -20,7 +20,6 @@
 #include <linux/mm.h>
 #include <linux/vmalloc.h>
 #include <linux/init.h>
-#include <linux/highmem.h>
 #include <linux/memblock.h>
 #include <linux/slab.h>
 #include <linux/set_memory.h>

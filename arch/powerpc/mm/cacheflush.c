@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <linux/highmem.h>
+#include <linux/cacheflush.h>
 #include <linux/kprobes.h>
 
 /**
@@ -76,51 +76,6 @@ void flush_icache_range(unsigned long start, unsigned long stop)
 }
 EXPORT_SYMBOL(flush_icache_range);
 
-#ifdef CONFIG_HIGHMEM
-/**
- * flush_dcache_icache_phys() - Flush a page by its physical address
- * @physaddr: the physical address of the page
- */
-static void flush_dcache_icache_phys(unsigned long physaddr)
-{
-	unsigned long bytes = l1_dcache_bytes();
-	unsigned long nb = PAGE_SIZE / bytes;
-	unsigned long addr = physaddr & PAGE_MASK;
-	unsigned long msr, msr0;
-	unsigned long loop1 = addr, loop2 = addr;
-
-	msr0 = mfmsr();
-	msr = msr0 & ~MSR_DR;
-	/*
-	 * This must remain as ASM to prevent potential memory accesses
-	 * while the data MMU is disabled
-	 */
-	asm volatile(
-		"   mtctr %2;\n"
-		"   mtmsr %3;\n"
-		"   isync;\n"
-		"0: dcbst   0, %0;\n"
-		"   addi    %0, %0, %4;\n"
-		"   bdnz    0b;\n"
-		"   sync;\n"
-		"   mtctr %2;\n"
-		"1: icbi    0, %1;\n"
-		"   addi    %1, %1, %4;\n"
-		"   bdnz    1b;\n"
-		"   sync;\n"
-		"   mtmsr %5;\n"
-		"   isync;\n"
-		: "+&r" (loop1), "+&r" (loop2)
-		: "r" (nb), "r" (msr), "i" (bytes), "r" (msr0)
-		: "ctr", "memory");
-}
-NOKPROBE_SYMBOL(flush_dcache_icache_phys)
-#else
-static void flush_dcache_icache_phys(unsigned long physaddr)
-{
-}
-#endif
-
 /**
  * __flush_dcache_icache(): Flush a particular page from the data cache to RAM.
  * Note: this is necessary because the instruction cache does *not*
@@ -151,26 +106,13 @@ static void __flush_dcache_icache(void *p)
 void flush_dcache_icache_folio(struct folio *folio)
 {
 	unsigned int i, nr = folio_nr_pages(folio);
+	void *addr = folio_address(folio);
 
 	if (flush_coherent_icache())
 		return;
 
-	if (!folio_test_highmem(folio)) {
-		void *addr = folio_address(folio);
-		for (i = 0; i < nr; i++)
-			__flush_dcache_icache(addr + i * PAGE_SIZE);
-	} else if (IS_ENABLED(CONFIG_BOOKE) || sizeof(phys_addr_t) > sizeof(void *)) {
-		for (i = 0; i < nr; i++) {
-			void *start = kmap_local_folio(folio, i * PAGE_SIZE);
-
-			__flush_dcache_icache(start);
-			kunmap_local(start);
-		}
-	} else {
-		unsigned long pfn = folio_pfn(folio);
-		for (i = 0; i < nr; i++)
-			flush_dcache_icache_phys((pfn + i) * PAGE_SIZE);
-	}
+	for (i = 0; i < nr; i++)
+		__flush_dcache_icache(addr + i * PAGE_SIZE);
 }
 EXPORT_SYMBOL(flush_dcache_icache_folio);
 
@@ -215,7 +157,6 @@ void flush_icache_user_page(struct vm_area_struct *vma, struct page *page,
 {
 	void *maddr;
 
-	maddr = kmap_local_page(page) + (addr & ~PAGE_MASK);
+	maddr = page_address(page) + (addr & ~PAGE_MASK);
 	flush_icache_range((unsigned long)maddr, (unsigned long)maddr + len);
-	kunmap_local(maddr);
 }

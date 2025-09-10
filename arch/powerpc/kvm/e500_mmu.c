@@ -19,7 +19,6 @@
 #include <linux/string.h>
 #include <linux/kvm.h>
 #include <linux/kvm_host.h>
-#include <linux/highmem.h>
 #include <linux/log2.h>
 #include <linux/uaccess.h>
 #include <linux/sched.h>

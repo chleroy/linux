@@ -1833,8 +1833,7 @@ static void __init ppc4xx_pciex_port_setup_hose(struct ppc4xx_pciex_port *port)
 	hose->last_busno = bus_range ? bus_range[1] : 0xff;
 
 	/* Because of how big mapping the config space is (1M per bus), we
-	 * limit how many busses we support. In the long run, we could replace
-	 * that with something akin to kmap_atomic instead. We set aside 1 bus
+	 * limit how many busses we support. We set aside 1 bus
 	 * for the host itself too.
 	 */
 	busses = hose->last_busno - hose->first_busno; /* This is off by 1 */

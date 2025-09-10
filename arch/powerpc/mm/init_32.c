@@ -21,7 +21,6 @@
 #include <linux/mm.h>
 #include <linux/stddef.h>
 #include <linux/init.h>
-#include <linux/highmem.h>
 #include <linux/initrd.h>
 #include <linux/pagemap.h>
 #include <linux/memblock.h>
@@ -96,10 +95,8 @@ void __init MMU_init(void)
 	if (total_lowmem > __max_low_memory) {
 		total_lowmem = __max_low_memory;
 		lowmem_end_addr = memstart_addr + total_lowmem;
-#ifndef CONFIG_HIGHMEM
 		total_memory = total_lowmem;
 		memblock_enforce_memory_limit(total_lowmem);
-#endif /* CONFIG_HIGHMEM */
 	}
 
 	/* Initialize the MMU hardware */

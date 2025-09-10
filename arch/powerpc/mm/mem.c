@@ -13,7 +13,6 @@
  */
 
 #include <linux/memblock.h>
-#include <linux/highmem.h>
 #include <linux/suspend.h>
 #include <linux/dma-direct.h>
 #include <linux/execmem.h>
@@ -172,9 +171,6 @@ void __init mem_topology_setup(void)
 {
 	max_low_pfn = max_pfn = memblock_end_of_DRAM() >> PAGE_SHIFT;
 	min_low_pfn = MEMORY_START >> PAGE_SHIFT;
-#ifdef CONFIG_HIGHMEM
-	max_low_pfn = lowmem_end_addr >> PAGE_SHIFT;
-#endif
 
 	/* Place all memblock_regions in the same node and merge contiguous
 	 * memblock_regions
@@ -232,17 +228,6 @@ void __init paging_init(void)
 	phys_addr_t top_of_ram = memblock_end_of_DRAM();
 	int zone_dma_bits;
 
-#ifdef CONFIG_HIGHMEM
-	unsigned long v = __fix_to_virt(FIX_KMAP_END);
-	unsigned long end = __fix_to_virt(FIX_KMAP_BEGIN);
-
-	for (; v < end; v += PAGE_SIZE)
-		map_kernel_page(v, 0, __pgprot(0)); /* XXX gross */
-
-	map_kernel_page(PKMAP_BASE, 0, __pgprot(0));	/* XXX gross */
-	pkmap_page_table = virt_to_kpte(PKMAP_BASE);
-#endif /* CONFIG_HIGHMEM */
-
 	printk(KERN_DEBUG "Top of RAM: 0x%llx, Total RAM: 0x%llx\n",
 	       (unsigned long long)top_of_ram, total_ram);
 	printk(KERN_DEBUG "Memory hole size: %ldMB\n",
@@ -264,9 +249,6 @@ void __init paging_init(void)
 				      1UL << (zone_dma_bits - PAGE_SHIFT));
 #endif
 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
-#ifdef CONFIG_HIGHMEM
-	max_zone_pfns[ZONE_HIGHMEM] = max_pfn;
-#endif
 
 	free_area_init(max_zone_pfns);
 

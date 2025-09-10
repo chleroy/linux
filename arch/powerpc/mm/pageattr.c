@@ -110,9 +110,6 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
 	int err;
 	unsigned long addr = (unsigned long)page_address(page);
 
-	if (PageHighMem(page))
-		return;
-
 	if (IS_ENABLED(CONFIG_PPC_BOOK3S_64) && !radix_enabled())
 		err = hash__kernel_map_pages(page, numpages, enable);
 	else if (enable)

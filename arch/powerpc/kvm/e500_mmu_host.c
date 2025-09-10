@@ -19,7 +19,6 @@
 #include <linux/string.h>
 #include <linux/kvm.h>
 #include <linux/kvm_host.h>
-#include <linux/highmem.h>
 #include <linux/log2.h>
 #include <linux/uaccess.h>
 #include <linux/sched/mm.h>
@@ -667,9 +666,20 @@ int kvmppc_load_last_inst(struct kvm_vcpu *vcpu,
 
 	/* Map a page and get guest's instruction */
 	page = pfn_to_page(pfn);
-	eaddr = (unsigned long)kmap_atomic(page);
+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
+		migrate_disable();
+	else
+		preempt_disable();
+	pagefault_disable();
+	eaddr = (unsigned long)page_address(page);
+
 	*instr = *(u32 *)(eaddr | (unsigned long)(addr & ~PAGE_MASK));
-	kunmap_atomic((u32 *)eaddr);
+
+	pagefault_enable();
+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
+		migrate_enable();
+	else
+		preempt_enable();
 
 	return EMULATE_DONE;
 }

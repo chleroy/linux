@@ -18,10 +18,6 @@
 #include <linux/sizes.h>
 #include <linux/pgtable.h>
 #include <asm/page.h>
-#ifdef CONFIG_HIGHMEM
-#include <linux/threads.h>
-#include <asm/kmap_size.h>
-#endif
 
 /*
  * Here we define all the compile-time 'special' virtual
@@ -47,10 +43,6 @@ enum fixed_addresses {
 	/* reserve the top 128K for early debugging purposes */
 	FIX_EARLY_DEBUG_TOP = FIX_HOLE,
 	FIX_EARLY_DEBUG_BASE = FIX_EARLY_DEBUG_TOP+(ALIGN(SZ_128K, PAGE_SIZE)/PAGE_SIZE)-1,
-#ifdef CONFIG_HIGHMEM
-	FIX_KMAP_BEGIN,	/* reserved pte's for temporary kernel mappings */
-	FIX_KMAP_END = FIX_KMAP_BEGIN + (KM_MAX_IDX * NR_CPUS) - 1,
-#endif
 #ifdef CONFIG_PPC_8xx
 	/* For IMMR we need an aligned 512K area */
 #define FIX_IMMR_SIZE	(512 * 1024 / PAGE_SIZE)

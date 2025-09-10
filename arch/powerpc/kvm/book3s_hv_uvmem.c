@@ -547,7 +547,7 @@ static int __kvmppc_svm_page_out(struct vm_area_struct *vma,
 	if (!is_zone_device_page(spage))
 		goto out_finalize;
 
-	dpage = alloc_page_vma(GFP_HIGHUSER, vma, start);
+	dpage = alloc_page_vma(GFP_USER, vma, start);
 	if (!dpage) {
 		ret = -1;
 		goto out_finalize;

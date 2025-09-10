@@ -15,7 +15,6 @@
 #include <linux/hugetlb.h>
 #include <linux/io.h>
 #include <linux/mm.h>
-#include <linux/highmem.h>
 #include <linux/ptdump.h>
 #include <linux/sched.h>
 #include <linux/seq_file.h>
@@ -91,10 +90,6 @@ static struct addr_marker address_markers[] = {
 #else
 	{ 0,	"Early I/O remap start" },
 	{ 0,	"Early I/O remap end" },
-#ifdef CONFIG_HIGHMEM
-	{ 0,	"Highmem PTEs start" },
-	{ 0,	"Highmem PTEs end" },
-#endif
 	{ 0,	"Fixmap start" },
 	{ 0,	"Fixmap end" },
 #endif
@@ -285,10 +280,6 @@ static void populate_markers(void)
 #else /* !CONFIG_PPC64 */
 	address_markers[i++].start_address = ioremap_bot;
 	address_markers[i++].start_address = IOREMAP_TOP;
-#ifdef CONFIG_HIGHMEM
-	address_markers[i++].start_address = PKMAP_BASE;
-	address_markers[i++].start_address = PKMAP_ADDR(LAST_PKMAP);
-#endif
 	address_markers[i++].start_address = FIXADDR_START;
 	address_markers[i++].start_address = FIXADDR_TOP;
 #endif /* CONFIG_PPC64 */
