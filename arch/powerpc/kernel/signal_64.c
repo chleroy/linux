@@ -893,13 +893,10 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 		}
 
 		unsafe_copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set), badframe);
+		unsafe_copy_siginfo_to_user(&frame->info, &ksig->info, badframe);
 		/* Allocate a dummy caller frame for the signal handler. */
 		unsafe_put_user(regs->gpr[1], newsp, badframe);
 	}
-
-	/* Save the siginfo outside of the unsafe block. */
-	if (copy_siginfo_to_user(&frame->info, &ksig->info))
-		goto badframe;
 
 	/* Make sure signal handler doesn't get spurious FP exceptions */
 	tsk->thread.fp_state.fpscr = 0;

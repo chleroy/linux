@@ -716,12 +716,6 @@ static long restore_tm_user_regs(struct pt_regs *regs, struct mcontext __user *s
 }
 #endif
 
-#ifdef CONFIG_PPC64
-
-#define copy_siginfo_to_user	copy_siginfo_to_user32
-
-#endif /* CONFIG_PPC64 */
-
 /*
  * Set up a signal frame for a "real-time" signal handler
  * (one which gets siginfo).
@@ -735,6 +729,7 @@ int handle_rt_signal32(struct ksignal *ksig, sigset_t *oldset,
 	struct pt_regs *regs = tsk->thread.regs;
 	/* Save the thread's msr before get_tm_stackpointer() changes it */
 	unsigned long msr = regs->msr;
+	compat_siginfo_t uinfo;
 
 	/* Set up Signal Frame */
 	frame = get_sigframe(ksig, tsk, sizeof(*frame), 1);
@@ -743,6 +738,9 @@ int handle_rt_signal32(struct ksignal *ksig, sigset_t *oldset,
 		prepare_save_tm_user_regs();
 	else
 		prepare_save_user_regs(1);
+
+	if (IS_ENABLED(CONFIG_COMPAT))
+		copy_siginfo_to_external32(&uinfo, &ksig->info);
 
 	scoped_user_rw_access_size(newsp, __SIGNAL_FRAMESIZE + 16 + sizeof(*frame), badframe) {
 		struct mcontext __user *mctx;
@@ -785,13 +783,15 @@ int handle_rt_signal32(struct ksignal *ksig, sigset_t *oldset,
 			asm("dcbst %y0; sync; icbi %y0; sync" :: "Z" (mctx->mc_pad[0]));
 		}
 		unsafe_put_sigset_t(&frame->uc.uc_sigmask, oldset, badframe);
+		if (IS_ENABLED(CONFIG_COMPAT))
+			unsafe_copy_to_user(&frame->info, &uinfo, sizeof(frame->info), badframe);
+		else
+			unsafe_copy_siginfo_to_user((void __user *)&frame->info, &ksig->info,
+						    badframe);
 
 		/* create a stack frame for the caller of the handler */
 		unsafe_put_user(regs->gpr[1], newsp, badframe);
 	}
-
-	if (copy_siginfo_to_user(&frame->info, &ksig->info))
-		goto badframe;
 
 	regs->link = tramp;
 
