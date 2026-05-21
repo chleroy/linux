@@ -873,6 +873,15 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 	if (!MSR_TM_ACTIVE(msr))
 		prepare_setup_sigcontext(tsk);
 
+#ifdef CONFIG_PPC_TRANSACTIONAL_MEM
+	if (MSR_TM_ACTIVE(msr))
+		err |= setup_tm_sigcontexts(&frame->uc.uc_mcontext,
+					    &frame->uc_transact.uc_mcontext,
+					    tsk, ksig->sig, NULL,
+					    (unsigned long)ksig->ka.sa.sa_handler,
+					    msr);
+
+#endif
 	if (!user_write_access_begin(frame, sizeof(*frame)))
 		goto badframe;
 
@@ -889,19 +898,6 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 		 * ucontext_t (for transactional state) with its uc_link ptr.
 		 */
 		unsafe_put_user(&frame->uc_transact, &frame->uc.uc_link, badframe_block);
-
-		user_write_access_end();
-
-		err |= setup_tm_sigcontexts(&frame->uc.uc_mcontext,
-					    &frame->uc_transact.uc_mcontext,
-					    tsk, ksig->sig, NULL,
-					    (unsigned long)ksig->ka.sa.sa_handler,
-					    msr);
-
-		if (!user_write_access_begin(&frame->uc.uc_sigmask,
-					     sizeof(frame->uc.uc_sigmask)))
-			goto badframe;
-
 #endif
 	} else {
 		unsafe_put_user(0, &frame->uc.uc_link, badframe_block);
