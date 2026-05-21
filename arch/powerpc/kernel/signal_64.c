@@ -846,13 +846,14 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 		struct task_struct *tsk)
 {
 	struct rt_sigframe __user *frame;
-	unsigned long newsp = 0;
+	unsigned long __user *newsp;
 	long err = 0;
 	struct pt_regs *regs = tsk->thread.regs;
 	/* Save the thread's msr before get_tm_stackpointer() changes it */
 	unsigned long msr = regs->msr;
 
 	frame = get_sigframe(ksig, tsk, sizeof(*frame), 0);
+	newsp = (unsigned long __user *)((unsigned long)frame - __SIGNAL_FRAMESIZE);
 
 	/*
 	 * This only applies when calling unsafe_setup_sigcontext() and must be
@@ -870,7 +871,7 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 					    msr);
 
 #endif
-	scoped_user_write_access(frame, badframe) {
+	scoped_user_write_access_size(newsp, __SIGNAL_FRAMESIZE + sizeof(*frame), badframe) {
 		unsafe_put_user(&frame->info, &frame->pinfo, badframe);
 		unsafe_put_user(&frame->uc, &frame->puc, badframe);
 
@@ -892,6 +893,8 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 		}
 
 		unsafe_copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set), badframe);
+		/* Allocate a dummy caller frame for the signal handler. */
+		unsafe_put_user(regs->gpr[1], newsp, badframe);
 	}
 
 	/* Save the siginfo outside of the unsafe block. */
@@ -910,10 +913,6 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 			goto badframe;
 		regs_set_return_ip(regs, (unsigned long) &frame->tramp[0]);
 	}
-
-	/* Allocate a dummy caller frame for the signal handler. */
-	newsp = ((unsigned long)frame) - __SIGNAL_FRAMESIZE;
-	err |= put_user(regs->gpr[1], (unsigned long __user *)newsp);
 
 	/* Set up "regs" so we "return" to the signal handler. */
 	if (is_elf2_task()) {
@@ -936,7 +935,7 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 
 	/* enter the signal handler in native-endian mode */
 	regs_set_return_msr(regs, (regs->msr & ~MSR_LE) | (MSR_KERNEL & MSR_LE));
-	regs->gpr[1] = newsp;
+	regs->gpr[1] = (unsigned long)newsp;
 	regs->gpr[3] = ksig->sig;
 	regs->result = 0;
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO) {
