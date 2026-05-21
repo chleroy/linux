@@ -928,8 +928,10 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 		struct func_desc __user *ptr =
 			(struct func_desc __user *)ksig->ka.sa.sa_handler;
 
-		err |= get_user(regs->ctr, &ptr->addr);
-		err |= get_user(regs->gpr[2], &ptr->toc);
+		scoped_user_read_access(ptr, badfunc) {
+			unsafe_get_user(regs->ctr, &ptr->addr, badfunc);
+			unsafe_get_user(regs->gpr[2], &ptr->toc, badfunc);
+		}
 	}
 
 	/* enter the signal handler in native-endian mode */
@@ -951,6 +953,11 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 
 badframe:
 	signal_fault(current, regs, "handle_rt_signal64", frame);
+
+	return 1;
+
+badfunc:
+	signal_fault(current, regs, __func__, (void __user *)ksig->ka.sa.sa_handler);
 
 	return 1;
 }
