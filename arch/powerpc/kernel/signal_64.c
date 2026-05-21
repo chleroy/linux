@@ -683,15 +683,12 @@ SYSCALL_DEFINE3(swapcontext, struct ucontext __user *, old_ctx,
 
 	if (old_ctx != NULL) {
 		prepare_setup_sigcontext(current);
-		if (!user_write_access_begin(old_ctx, ctx_size))
-			return -EFAULT;
-
-		unsafe_setup_sigcontext(&old_ctx->uc_mcontext, current, 0, NULL,
-					0, ctx_has_vsx_region, efault_out);
-		unsafe_copy_to_user(&old_ctx->uc_sigmask, &current->blocked,
-				    sizeof(sigset_t), efault_out);
-
-		user_write_access_end();
+		scoped_user_write_access_size(old_ctx, ctx_size, efault_out) {
+			unsafe_setup_sigcontext(&old_ctx->uc_mcontext, current, 0, NULL,
+						0, ctx_has_vsx_region, efault_out);
+			unsafe_copy_to_user(&old_ctx->uc_sigmask, &current->blocked,
+					    sizeof(sigset_t), efault_out);
+		}
 	}
 	if (new_ctx == NULL)
 		return 0;
@@ -717,14 +714,12 @@ SYSCALL_DEFINE3(swapcontext, struct ucontext __user *, old_ctx,
 	}
 	set_current_blocked(&set);
 
-	if (!user_read_access_begin(new_ctx, ctx_size))
-		return -EFAULT;
-	if (__unsafe_restore_sigcontext(current, NULL, 0, &new_ctx->uc_mcontext)) {
-		user_read_access_end();
-		force_exit_sig(SIGSEGV);
-		return -EFAULT;
+	scoped_user_read_access_size(new_ctx, ctx_size, efault_out) {
+		if (__unsafe_restore_sigcontext(current, NULL, 0, &new_ctx->uc_mcontext)) {
+			force_exit_sig(SIGSEGV);
+			return -EFAULT;
+		}
 	}
-	user_read_access_end();
 
 	/* This returns like rt_sigreturn */
 	set_thread_flag(TIF_RESTOREALL);
@@ -732,7 +727,6 @@ SYSCALL_DEFINE3(swapcontext, struct ucontext __user *, old_ctx,
 	return 0;
 
 efault_out:
-	user_write_access_end();
 	return -EFAULT;
 }
 
@@ -815,6 +809,7 @@ SYSCALL_DEFINE0(rt_sigreturn)
 					   &uc_transact->uc_mcontext))
 			goto badframe;
 	} else {
+		struct sigcontext __user *uc_mcontext = &uc->uc_mcontext;
 		/*
 		 * Fall through, for non-TM restore
 		 *
@@ -829,13 +824,8 @@ SYSCALL_DEFINE0(rt_sigreturn)
 		 */
 		regs_set_return_msr(current->thread.regs,
 				current->thread.regs->msr & ~MSR_TS_MASK);
-		if (!user_read_access_begin(&uc->uc_mcontext, sizeof(uc->uc_mcontext)))
-			goto badframe;
-
-		unsafe_restore_sigcontext(current, NULL, 1, &uc->uc_mcontext,
-					  badframe_block);
-
-		user_read_access_end();
+		scoped_user_read_access(uc_mcontext, badframe)
+			unsafe_restore_sigcontext(current, NULL, 1, uc_mcontext, badframe);
 	}
 
 	if (restore_altstack(&uc->uc_stack))
@@ -845,8 +835,6 @@ SYSCALL_DEFINE0(rt_sigreturn)
 
 	return 0;
 
-badframe_block:
-	user_read_access_end();
 badframe:
 	signal_fault(current, regs, "rt_sigreturn", uc);
 
@@ -882,32 +870,29 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 					    msr);
 
 #endif
-	if (!user_write_access_begin(frame, sizeof(*frame)))
-		goto badframe;
+	scoped_user_write_access(frame, badframe) {
+		unsafe_put_user(&frame->info, &frame->pinfo, badframe);
+		unsafe_put_user(&frame->uc, &frame->puc, badframe);
 
-	unsafe_put_user(&frame->info, &frame->pinfo, badframe_block);
-	unsafe_put_user(&frame->uc, &frame->puc, badframe_block);
+		/* Create the ucontext.  */
+		unsafe_put_user(0, &frame->uc.uc_flags, badframe);
+		unsafe_save_altstack(&frame->uc.uc_stack, regs->gpr[1], badframe);
 
-	/* Create the ucontext.  */
-	unsafe_put_user(0, &frame->uc.uc_flags, badframe_block);
-	unsafe_save_altstack(&frame->uc.uc_stack, regs->gpr[1], badframe_block);
-
-	if (MSR_TM_ACTIVE(msr)) {
+		if (MSR_TM_ACTIVE(msr)) {
 #ifdef CONFIG_PPC_TRANSACTIONAL_MEM
-		/* The ucontext_t passed to userland points to the second
-		 * ucontext_t (for transactional state) with its uc_link ptr.
-		 */
-		unsafe_put_user(&frame->uc_transact, &frame->uc.uc_link, badframe_block);
+			/* The ucontext_t passed to userland points to the second
+			 * ucontext_t (for transactional state) with its uc_link ptr.
+			 */
+			unsafe_put_user(&frame->uc_transact, &frame->uc.uc_link, badframe);
 #endif
-	} else {
-		unsafe_put_user(0, &frame->uc.uc_link, badframe_block);
-		unsafe_setup_sigcontext(&frame->uc.uc_mcontext, tsk, ksig->sig,
-					NULL, (unsigned long)ksig->ka.sa.sa_handler,
-					1, badframe_block);
-	}
+		} else {
+			unsafe_put_user(0, &frame->uc.uc_link, badframe);
+			unsafe_setup_sigcontext(&frame->uc.uc_mcontext, tsk, ksig->sig, NULL,
+						(unsigned long)ksig->ka.sa.sa_handler, 1, badframe);
+		}
 
-	unsafe_copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set), badframe_block);
-	user_write_access_end();
+		unsafe_copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set), badframe);
+	}
 
 	/* Save the siginfo outside of the unsafe block. */
 	if (copy_siginfo_to_user(&frame->info, &ksig->info))
@@ -964,8 +949,6 @@ int handle_rt_signal64(struct ksignal *ksig, sigset_t *set,
 
 	return 0;
 
-badframe_block:
-	user_write_access_end();
 badframe:
 	signal_fault(current, regs, "handle_rt_signal64", frame);
 
